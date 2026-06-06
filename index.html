@@ -1214,8 +1214,8 @@
   <div class="layer-loading" id="layer-loading">LOADING LAYER…</div>
 
   <!-- ===== COOPER WATCH DRAW MODE BANNER ===== -->
-  <div id="cooper-draw-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9000;background:linear-gradient(90deg,#ff6600,#ff4400);color:#fff;font-family:'Bebas Neue',Arial,sans-serif;font-size:15px;letter-spacing:3px;text-align:center;padding:8px 16px;box-shadow:0 2px 12px rgba(0,0,0,0.5);pointer-events:none;">
-    ✏️ COOPER WATCH DRAW MODE — CLICK MAP TO ADD POINTS &nbsp;|&nbsp; <span style="color:#ffe0b2;">DOUBLE-CLICK OR PRESS ENTER TO FINISH</span> &nbsp;|&nbsp; <span style="color:#ffe0b2;">ESC TO CANCEL</span>
+  <div id="cooper-draw-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9000;background:linear-gradient(90deg,#cc0000,#aa0000);color:#fff;font-family:'Bebas Neue',Arial,sans-serif;font-size:15px;letter-spacing:3px;text-align:center;padding:8px 16px;box-shadow:0 2px 12px rgba(0,0,0,0.5);pointer-events:none;">
+    🚨 DRAW YOUR ALERT — CLICK MAP TO ADD POINTS &nbsp;|&nbsp; <span style="color:#ffcccc;">DOUBLE-CLICK OR PRESS ENTER TO FINISH</span> &nbsp;|&nbsp; <span style="color:#ffcccc;">ESC TO CANCEL</span>
   </div>
 
   <!-- ===== COOPER WATCH ISSUE MODAL ===== -->
@@ -5624,20 +5624,9 @@ window.flyToAlertWithFlash = function(feature) {
     drawPreviewSrc = 'cooper-preview';
   };
 
-  // ── Issue Own Alert (no draw required) ────────────────────
+  // ── Issue Own Alert — launches draw mode so user draws the shape ──────────
   window.issueOwnAlert = function() {
-    // Generate a default polygon around the current map center (roughly 1° box)
-    const center = map.getCenter();
-    const lat = center.lat;
-    const lng = center.lng;
-    const d = 0.8; // ~55 miles half-width
-    pendingCoords = [
-      [lng - d, lat - d],
-      [lng + d, lat - d],
-      [lng + d, lat + d],
-      [lng - d, lat + d]
-    ];
-    openModal();
+    window.startCooperDraw();
   };
 
   // ── Map click during draw ──────────────────────────────────
