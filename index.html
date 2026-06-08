@@ -309,9 +309,11 @@
     .color-picker-row {
       display: flex;
       align-items: center;
-      margin: 6px 0;
-      padding: 4px 0;
+      gap: 6px;
+      margin: 4px 0;
+      padding: 3px 0;
       border-bottom: 1px solid rgba(0,150,255,0.1);
+      transition: opacity 0.2s;
     }
 
     .color-picker-label {
@@ -1206,6 +1208,11 @@
       <button class="toolbar-btn" id="tb-archive" onclick="openArchivePanel()" style="background:rgba(0,30,60,0.95);border-color:rgba(0,150,255,0.4);color:#7ac8ff;font-size:12px;letter-spacing:1.5px;"><span class="btn-icon">🗂</span>ALERT ARCHIVE</button>
     </div>
 
+    <!-- NEXRAD Sites toggle -->
+    <div style="position:relative;">
+      <button class="toolbar-btn" id="tb-nexrad-sites" onclick="toggleNexradSites()" style="background:rgba(0,20,40,0.95);border-color:rgba(0,200,255,0.3);color:#66ddff;font-size:12px;letter-spacing:1.5px;"><span class="btn-icon">📡</span>NEXRAD SITES</button>
+    </div>
+
     <!-- Hidden list element kept for JS compatibility -->
     <div id="cooper-watch-list-dd" style="display:none;"></div>
   </div>
@@ -1554,10 +1561,10 @@
   </style>
   <script>
     // MapTiler SDK initialization
-    maptilersdk.config.apiKey = 'CmQHmGrZ2Xo39Iqx78BO';
+    maptilersdk.config.apiKey = 'wL3801y3iQsKfcXRxsF5';
     var map = new maptilersdk.Map({
       container: 'map',
-      style: '01977485-3327-711a-8309-09c8d9dcc02b',
+      style: '01999299-e27c-7fef-aa98-62beaba7d2e2',
       hash: true,
       maptilerLogo: true,
       maxPitch: 85,
@@ -1898,47 +1905,93 @@ const defaultColors = {
 // Load saved colors or use defaults
 let alertColors = JSON.parse(localStorage.getItem('alertColors')) || {...defaultColors};
 
+// Load saved hidden alert types
+let hiddenAlertTypes = new Set(JSON.parse(localStorage.getItem('hiddenAlertTypes') || '[]'));
+
+function _saveHiddenTypes() {
+  localStorage.setItem('hiddenAlertTypes', JSON.stringify([...hiddenAlertTypes]));
+}
+
+// Toggle a whole alert type hidden/visible — used by color menu checkboxes
+window.toggleAlertType = function(alertType, checked) {
+  if (checked) {
+    hiddenAlertTypes.delete(alertType);
+  } else {
+    hiddenAlertTypes.add(alertType);
+  }
+  _saveHiddenTypes();
+  if (map.getSource('nws-alert-polygons')) pollNwsAlerts();
+  displayPolygons();
+};
+
+// Master hide-all types toggle
+window.toggleAllAlertTypes = function(checked) {
+  if (checked) {
+    hiddenAlertTypes.clear();
+  } else {
+    Object.keys(defaultColors).forEach(t => hiddenAlertTypes.add(t));
+  }
+  _saveHiddenTypes();
+  // Sync all checkboxes
+  document.querySelectorAll('.alert-type-vis-cb').forEach(cb => { cb.checked = checked; });
+  document.querySelectorAll('.alert-type-row').forEach(row => { row.style.opacity = checked ? '1' : '0.4'; });
+  if (map.getSource('nws-alert-polygons')) pollNwsAlerts();
+  displayPolygons();
+};
+
+function _buildColorMenuRow(alertType, defaultColor, section) {
+  const hidden = hiddenAlertTypes.has(alertType);
+  return `
+    <div class="color-picker-row alert-type-row" style="${hidden ? 'opacity:0.4;' : ''}" data-alert-type-row="${alertType}">
+      <input type="checkbox" class="alert-type-vis-cb" title="Show/hide this alert type on map"
+        data-alert-type="${alertType}" ${hidden ? '' : 'checked'}
+        onchange="toggleAlertType('${alertType}', this.checked);
+          this.closest('.alert-type-row').style.opacity = this.checked ? '1' : '0.4';"
+        style="cursor:pointer;accent-color:#00cfff;flex-shrink:0;margin-right:4px;">
+      <div class="color-picker-label" style="flex:1;">${alertType}</div>
+      <input type="color"
+             class="color-picker-input"
+             data-alert-type="${alertType}"
+             value="${alertColors[alertType] || defaultColor}"
+             title="Change color">
+    </div>
+  `;
+}
+
 // Create color picker menu HTML
 document.querySelector('.color-menu').innerHTML = `
-    <h3>Alert Colors</h3>
+    <h3>Alert Colors &amp; Visibility</h3>
+
+    <div style="display:flex;align-items:center;gap:8px;padding:4px 0 10px;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:8px;">
+      <input type="checkbox" id="alert-types-show-all-cb"
+        ${hiddenAlertTypes.size === 0 ? 'checked' : ''}
+        onchange="toggleAllAlertTypes(this.checked)"
+        style="cursor:pointer;accent-color:#00cfff;width:15px;height:15px;">
+      <label for="alert-types-show-all-cb" style="font-family:'Bebas Neue',Arial,sans-serif;font-size:13px;letter-spacing:1.5px;color:rgba(255,255,255,0.8);cursor:pointer;">
+        SHOW ALL ALERT TYPES ON MAP
+      </label>
+    </div>
+
     <div class="color-menu-section">
-        <h4>NWS Alert Colors</h4>
+        <h4>NWS Polygon Alerts</h4>
         ${Object.entries(defaultColors)
-            // FIX: Only include types ending with 'Warning' or containing 'Statement'
-            // AND explicitly include Tornado Emergency and Flash Flood Emergency
             .filter(([key]) =>
                 key.toLowerCase().includes('warning') ||
                 key.toLowerCase().includes('statement') ||
                 key === 'Tornado Emergency' ||
                 key === 'Flash Flood Emergency'
             )
-            .map(([alertType, defaultColor]) => `
-                <div class="color-picker-row">
-                    <div class="color-picker-label">${alertType}</div>
-                    <input type="color" 
-                           class="color-picker-input" 
-                           data-alert-type="${alertType}"
-                           value="${alertColors[alertType] || defaultColor}">
-                </div>
-            `).join('')}
+            .map(([alertType, defaultColor]) => _buildColorMenuRow(alertType, defaultColor, 'warning'))
+            .join('')}
     </div>
     <div class="color-menu-section">
-        <h4>Zone Alert Colors</h4>
+        <h4>Zone / Watch Alerts</h4>
         ${Object.entries(defaultColors)
-            // FIX: Only include types ending with 'Watch' or 'Advisory'
             .filter(([key]) => key.toLowerCase().includes('watch') || key.toLowerCase().includes('advisory'))
-            .map(([alertType, defaultColor]) => `
-                <div class="color-picker-row">
-                    <div class="color-picker-label">${alertType}</div>
-                    <input type="color" 
-                           class="color-picker-input" 
-                           data-alert-type="${alertType}"
-                           value="${alertColors[alertType] || defaultColor}">
-                </div>
-            `).join('')}
-
+            .map(([alertType, defaultColor]) => _buildColorMenuRow(alertType, defaultColor, 'watch'))
+            .join('')}
     </div>
-    <button class="reset-colors-btn">Reset to Default Colors</button>
+    <button class="reset-colors-btn">Reset to Default Colors &amp; Show All</button>
 `;
 
 // Add color picker change handlers
@@ -1962,12 +2015,20 @@ document.querySelectorAll('.color-picker-input').forEach(input => {
 document.querySelector('.reset-colors-btn').addEventListener('click', () => {
     alertColors = {...defaultColors};
     localStorage.setItem('alertColors', JSON.stringify(alertColors));
+    // Also un-hide all alert types
+    hiddenAlertTypes.clear();
+    _saveHiddenTypes();
     
     // Update color picker inputs
     document.querySelectorAll('.color-picker-input').forEach(input => {
         const alertType = input.dataset.alertType;
         input.value = defaultColors[alertType];
     });
+    // Reset visibility checkboxes
+    document.querySelectorAll('.alert-type-vis-cb').forEach(cb => { cb.checked = true; });
+    document.querySelectorAll('.alert-type-row').forEach(row => { row.style.opacity = '1'; });
+    const masterCb = document.getElementById('alert-types-show-all-cb');
+    if (masterCb) masterCb.checked = true;
     
     // Force refresh both polygon types
     pollNwsAlerts();
@@ -2177,6 +2238,8 @@ const IEM_N = 15;
       const param = ts ? tsParam(ts) : '';
       return IEM_BASE + '/{z}/{x}/{y}.png' + (param ? '?ts=' + param : '');
     }
+    // Expose so loadNexradL2 (outside this IIFE) can call it
+    window.ensureViperProtocol = ensureViperProtocol;
 
     // Convert IEM tile URL to viper:// protocol URL
     function viperTileUrl(ts) {
@@ -2432,9 +2495,12 @@ const IEM_N = 15;
               maxWindGust: maxWindGust
             }
           };
-          polygonsToAdd.push(polygonFeature);
+          // Always track in polygonsById for tour/info card, but skip map render if type is hidden
           polygonsById[feature.id] = polygonFeature;
           window.polygonsById = polygonsById;
+          const _typeHidden = (window.hiddenAlertTypes && window.hiddenAlertTypes.has(colorKey || event))
+                           || (window.hiddenAlerts    && window.hiddenAlerts.has(feature.id));
+          if (!_typeHidden) polygonsToAdd.push(polygonFeature);
           alertListHtml += `
             <div class="nws-alert-item" data-alert-id="${feature.id}" style="cursor:pointer;">
               <span class="nws-alert-color-box" style="background:${fillColor};"></span>
@@ -3770,6 +3836,8 @@ styleSheet.insertRule(`
                     const groupsToShow = Object.values(groupedAlerts)
                       .sort((a,b) => b.priority - a.priority)
                       .filter(g => {
+                        // Filter by type visibility setting
+                        if (window.hiddenAlertTypes && window.hiddenAlertTypes.has(g.event)) return false;
                         const ev = String(g.event || '').toLowerCase();
                         if (currentAlertFilter === 'warnings') return ev.includes('warning');
                         if (currentAlertFilter === 'watches') return ev.includes('watch');
@@ -4385,32 +4453,87 @@ document.addEventListener('click', function(e) {
 // ============================================================
 //  NEXRAD LEVEL 2 (Iowa State mesonet tiles)
 // ============================================================
-window.loadNexradL2 = function(site) {
+window.loadNexradL2 = async function(site) {
   const btn = document.getElementById('tb-radar');
-  btn.classList.add('active');
-  showLoading('Loading NEXRAD L2 ' + site + '…');
-  // Remove any existing L2 layer
-  ['nexrad-l2-fill','nexrad-l2'].forEach(id => {
-    if (map.getLayer(id)) { try { map.removeLayer(id); } catch(e){} }
-  });
-  if (map.getSource('nexrad-l2')) { try { map.removeSource('nexrad-l2'); } catch(e){} }
+  if (btn) btn.classList.add('active');
+  showLoading('Loading NEXRAD ' + site + '…');
 
-  // Iowa State Mesonet IEM ridge2 tiles for the selected station
-  const tileUrl = `https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/ridge::${site}::N0Q::0/{z}/{x}/{y}.png`;
+  // Remove any existing site or L3 overlay
+  ['nexrad-l2-fill','nexrad-l2','nexrad-l3'].forEach(id => {
+    if (map.getLayer(id)) try { map.removeLayer(id); } catch(e) {}
+  });
+  ['nexrad-l2','nexrad-l3'].forEach(id => {
+    if (map.getSource(id)) try { map.removeSource(id); } catch(e) {}
+  });
+
+  // ── Fetch latest valid timestamp from IEM JSON API ────────────────────────
+  // IEM single-site tile URL format (from IEM docs):
+  //   /cache/tile.py/1.0.0/ridge::SITE-PRODUCT-TIMESTAMP/{z}/{x}/{y}.png
+  // e.g. ridge::KDOX-N0Q-202506061234
+  // The timestamp is embedded IN the product name with dashes, NOT as ?ts= param.
+  // This is served in web mercator (spherical mercator) — compatible with MapTiler.
+  let timestamp = '0'; // '0' = latest available (IEM fallback)
   try {
-    map.addSource('nexrad-l2', { type: 'raster', tiles: [tileUrl], tileSize: 256, attribution: 'IEM/NWS' });
-    const layers = map.getStyle().layers || [];
-    const sym = layers.find(l => l.type === 'symbol');
-    map.addLayer({ id: 'nexrad-l2', type: 'raster', source: 'nexrad-l2', paint: { 'raster-opacity': 0.85 } }, sym ? sym.id : undefined);
-  } catch(err) { console.warn('L2 error', err); }
+    const jsonUrl = 'https://mesonet.agron.iastate.edu/json/radar?op=list&product=N0Q&radar=' + site;
+    const res = await fetch(jsonUrl);
+    if (res.ok) {
+      const data = await res.json();
+      const raw = (data.data || data.items || []);
+      const frames = raw
+        .map(f => {
+          const v = f.valid || f.ts || '';
+          // "2025-06-01 12:34" → "202506011234"
+          return v ? v.replace(/[-: ]/g, '').slice(0, 12) : null;
+        })
+        .filter(Boolean)
+        .sort();
+      if (frames.length) timestamp = frames[frames.length - 1];
+    }
+  } catch(e) {
+    console.warn('IEM site JSON fetch failed:', e);
+  }
+
+  // ── Build correct IEM single-site tile URL ────────────────────────────────
+  // Format: ridge::SITE-PRODUCT-TIMESTAMP  (dashes between site/product/time)
+  if (typeof ensureViperProtocol === 'function') ensureViperProtocol();
+
+  const product   = site + '-N0Q-' + timestamp;
+  const iemBase   = 'https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/ridge::' + product;
+  const rawUrl    = iemBase + '/{z}/{x}/{y}.png';
+  const tileUrl   = window._viperFallback ? rawUrl : rawUrl.replace('https://', 'viper://');
+
+  try {
+    const sym = (map.getStyle().layers || []).find(l => l.type === 'symbol');
+    map.addSource('nexrad-l2', {
+      type: 'raster',
+      tiles: [tileUrl],
+      tileSize: 256,
+      attribution: 'IEM / NWS NEXRAD',
+      minzoom: 4,
+      maxzoom: 12
+    });
+    map.addLayer({
+      id: 'nexrad-l2',
+      type: 'raster',
+      source: 'nexrad-l2',
+      paint: { 'raster-opacity': 0.9 }
+    }, sym ? sym.id : undefined);
+  } catch(err) {
+    console.warn('NEXRAD site layer error:', err);
+  }
+
+  // Fly to the station
+  const st = (window._nexradStations || []).find(s => s.id === site);
+  if (st) map.flyTo({ center: [st.lon, st.lat], zoom: 7, duration: 1200 });
+
   hideLoading();
-  // Update dropdown labels
   document.querySelectorAll('#dd-radar .dropdown-item').forEach(b => b.classList.remove('active'));
-  // Update radar bar — local site
+
   const titleEl = document.getElementById('lrb-title');
   const codeEl  = document.getElementById('lrb-station-code');
   if (titleEl) titleEl.textContent = 'LOCAL RADAR';
   if (codeEl)  codeEl.textContent  = site;
+  window._activeNexradSite = site;
 };
 
 // ============================================================
@@ -4908,149 +5031,175 @@ document.addEventListener('click', function(e) {
   updateClock();
   setInterval(updateClock, 10000);
 
-  // ── NEXRAD station database (major CONUS sites) ────────────
+  // ── NEXRAD station database (all 163 CONUS + AK + HI + PR + Guam + overseas) ─
   const STATIONS = [
-    { id:'KABR', name:'Aberdeen SD',         lat:45.45, lon:-98.41  },
-    { id:'KABX', name:'Albuquerque NM',      lat:35.14, lon:-106.82 },
-    { id:'KAKQ', name:'Norfolk VA',           lat:36.98, lon:-77.01  },
-    { id:'KAMA', name:'Amarillo TX',          lat:35.23, lon:-101.71 },
-    { id:'KAMX', name:'Miami FL',             lat:25.61, lon:-80.41  },
-    { id:'KAPX', name:'Gaylord MI',           lat:44.91, lon:-84.72  },
-    { id:'KARX', name:'La Crosse WI',         lat:43.82, lon:-91.19  },
-    { id:'KATX', name:'Seattle WA',           lat:48.19, lon:-122.49 },
-    { id:'KBBX', name:'Chico CA',             lat:39.49, lon:-121.63 },
-    { id:'KBGM', name:'Binghamton NY',        lat:42.20, lon:-75.98  },
-    { id:'KBHX', name:'Eureka CA',            lat:40.49, lon:-124.29 },
-    { id:'KBIS', name:'Bismarck ND',          lat:46.77, lon:-100.76 },
-    { id:'KBLX', name:'Billings MT',          lat:45.85, lon:-108.60 },
-    { id:'KBMX', name:'Birmingham AL',        lat:33.17, lon:-86.77  },
-    { id:'KBOX', name:'Boston MA',            lat:41.95, lon:-71.13  },
-    { id:'KBRO', name:'Brownsville TX',       lat:25.91, lon:-97.41  },
-    { id:'KBUF', name:'Buffalo NY',           lat:42.94, lon:-78.74  },
-    { id:'KBYX', name:'Key West FL',          lat:24.59, lon:-81.70  },
-    { id:'KCAE', name:'Columbia SC',          lat:33.94, lon:-81.11  },
-    { id:'KCBW', name:'Caribou ME',           lat:46.03, lon:-67.80  },
-    { id:'KCBX', name:'Boise ID',             lat:43.49, lon:-116.23 },
-    { id:'KCCX', name:'State College PA',     lat:40.92, lon:-78.00  },
-    { id:'KCLE', name:'Cleveland OH',         lat:41.41, lon:-81.86  },
-    { id:'KCLX', name:'Charleston SC',        lat:32.65, lon:-81.04  },
-    { id:'KCRP', name:'Corpus Christi TX',    lat:27.78, lon:-97.51  },
-    { id:'KCYS', name:'Cheyenne WY',          lat:41.15, lon:-104.81 },
-    { id:'KDAX', name:'Sacramento CA',        lat:38.50, lon:-121.68 },
-    { id:'KDDC', name:'Dodge City KS',        lat:37.77, lon:-99.97  },
-    { id:'KDEN', name:'Denver CO',            lat:39.78, lon:-104.54 },
-    { id:'KDGX', name:'Jackson MS',           lat:32.28, lon:-89.98  },
-    { id:'KDLH', name:'Duluth MN',            lat:46.83, lon:-92.21  },
-    { id:'KDMX', name:'Des Moines IA',        lat:41.73, lon:-93.72  },
-    { id:'KDOX', name:'Dover DE',             lat:38.82, lon:-75.44  },
-    { id:'KDTX', name:'Detroit MI',           lat:42.70, lon:-83.47  },
-    { id:'KDVN', name:'Davenport IA',         lat:41.61, lon:-90.58  },
-    { id:'KDYX', name:'Dyess AFB TX',         lat:32.54, lon:-99.25  },
-    { id:'KEAX', name:'Kansas City MO',       lat:38.81, lon:-94.26  },
-    { id:'KEMX', name:'Tucson AZ',            lat:31.89, lon:-110.63 },
-    { id:'KENX', name:'Albany NY',            lat:42.58, lon:-74.06  },
-    { id:'KEOX', name:'Fort Rucker AL',       lat:31.46, lon:-85.46  },
-    { id:'KEPZ', name:'El Paso TX',           lat:31.87, lon:-106.70 },
-    { id:'KESX', name:'Las Vegas NV',         lat:35.70, lon:-114.89 },
-    { id:'KEVX', name:'Eglin AFB FL',         lat:30.56, lon:-85.92  },
-    { id:'KEWX', name:'San Antonio TX',       lat:29.70, lon:-98.02  },
-    { id:'KEYX', name:'Edwards AFB CA',       lat:35.09, lon:-117.56 },
-    { id:'KFCX', name:'Roanoke VA',           lat:37.02, lon:-80.27  },
-    { id:'KFDR', name:'Altus OK',             lat:34.36, lon:-98.98  },
-    { id:'KFDX', name:'Cannon AFB NM',        lat:34.63, lon:-103.62 },
-    { id:'KFFC', name:'Atlanta GA',           lat:33.36, lon:-84.57  },
-    { id:'KFSD', name:'Sioux Falls SD',       lat:43.58, lon:-96.73  },
-    { id:'KFSX', name:'Flagstaff AZ',         lat:34.57, lon:-111.20 },
-    { id:'KFTG', name:'Denver CO (East)',     lat:39.78, lon:-104.54 },
-    { id:'KFWS', name:'Dallas-Fort Worth TX', lat:32.57, lon:-97.30  },
-    { id:'KGGW', name:'Glasgow MT',           lat:48.20, lon:-106.62 },
-    { id:'KGJX', name:'Grand Junction CO',    lat:39.06, lon:-108.21 },
-    { id:'KGLD', name:'Goodland KS',          lat:39.36, lon:-101.70 },
-    { id:'KGRB', name:'Green Bay WI',         lat:44.49, lon:-88.11  },
-    { id:'KGRK', name:'Fort Hood TX',         lat:30.72, lon:-97.38  },
-    { id:'KGRR', name:'Grand Rapids MI',      lat:42.89, lon:-85.54  },
-    { id:'KGSP', name:'Greenville SC',        lat:34.88, lon:-82.22  },
-    { id:'KGWX', name:'Columbus MS',          lat:33.89, lon:-88.33  },
-    { id:'KGYX', name:'Portland ME',          lat:43.89, lon:-70.26  },
-    { id:'KHDX', name:'Holloman AFB NM',      lat:33.07, lon:-106.12 },
-    { id:'KHGX', name:'Houston TX',           lat:29.47, lon:-95.08  },
-    { id:'KHNX', name:'San Joaquin Valley CA',lat:36.31, lon:-119.63 },
-    { id:'KHPX', name:'Fort Campbell KY',     lat:36.73, lon:-87.28  },
-    { id:'KHTX', name:'Huntsville AL',        lat:34.93, lon:-86.08  },
-    { id:'KICT', name:'Wichita KS',           lat:37.65, lon:-97.44  },
-    { id:'KICX', name:'Cedar City UT',        lat:37.59, lon:-112.86 },
-    { id:'KILN', name:'Wilmington OH',        lat:39.42, lon:-83.82  },
-    { id:'KILX', name:'Lincoln IL',           lat:40.15, lon:-89.33  },
-    { id:'KIND', name:'Indianapolis IN',      lat:39.70, lon:-86.28  },
-    { id:'KINX', name:'Tulsa OK',             lat:36.17, lon:-95.56  },
-    { id:'KIWA', name:'Phoenix AZ',           lat:33.28, lon:-111.67 },
-    { id:'KIWX', name:'Fort Wayne IN',        lat:41.36, lon:-85.70  },
-    { id:'KJAX', name:'Jacksonville FL',      lat:30.48, lon:-81.70  },
-    { id:'KJGX', name:'Robins AFB GA',        lat:32.67, lon:-83.35  },
-    { id:'KJKL', name:'Jackson KY',           lat:37.59, lon:-83.31  },
-    { id:'KLBB', name:'Lubbock TX',           lat:33.65, lon:-101.81 },
-    { id:'KLCH', name:'Lake Charles LA',      lat:30.12, lon:-93.21  },
-    { id:'KLIX', name:'New Orleans LA',       lat:30.33, lon:-89.83  },
-    { id:'KLNX', name:'North Platte NE',      lat:41.95, lon:-100.58 },
-    { id:'KLOT', name:'Chicago IL',           lat:41.60, lon:-88.08  },
-    { id:'KLRX', name:'Elko NV',              lat:40.74, lon:-116.80 },
-    { id:'KLSX', name:'St. Louis MO',         lat:38.69, lon:-90.68  },
-    { id:'KLTX', name:'Wilmington NC',        lat:33.98, lon:-78.43  },
-    { id:'KLVX', name:'Louisville KY',        lat:37.97, lon:-85.94  },
-    { id:'KLWX', name:'Baltimore MD',         lat:38.97, lon:-77.48  },
-    { id:'KLZK', name:'Little Rock AR',       lat:34.83, lon:-92.26  },
-    { id:'KMAF', name:'Midland TX',           lat:31.94, lon:-102.18 },
-    { id:'KMAX', name:'Medford OR',           lat:42.08, lon:-122.71 },
-    { id:'KMBX', name:'Minot ND',             lat:48.38, lon:-100.86 },
-    { id:'KMHX', name:'Morehead City NC',     lat:34.77, lon:-76.87  },
-    { id:'KMKX', name:'Milwaukee WI',         lat:42.96, lon:-88.55  },
-    { id:'KMLB', name:'Melbourne FL',         lat:28.11, lon:-80.65  },
-    { id:'KMOB', name:'Mobile AL',            lat:30.67, lon:-88.23  },
-    { id:'KMPX', name:'Minneapolis MN',       lat:44.84, lon:-93.56  },
-    { id:'KMQT', name:'Marquette MI',         lat:46.53, lon:-87.54  },
-    { id:'KMRX', name:'Knoxville TN',         lat:36.16, lon:-83.40  },
-    { id:'KMSX', name:'Missoula MT',          lat:47.04, lon:-113.98 },
-    { id:'KMTX', name:'Salt Lake City UT',    lat:41.26, lon:-112.44 },
-    { id:'KMUX', name:'San Francisco CA',     lat:37.15, lon:-121.89 },
-    { id:'KMVX', name:'Grand Forks ND',       lat:47.52, lon:-97.32  },
-    { id:'KMXX', name:'Maxwell AFB AL',       lat:32.53, lon:-85.78  },
-    { id:'KNKX', name:'San Diego CA',         lat:32.91, lon:-117.04 },
-    { id:'KNQA', name:'Memphis TN',           lat:35.34, lon:-89.87  },
-    { id:'KOAX', name:'Omaha NE',             lat:41.32, lon:-96.36  },
-    { id:'KOHX', name:'Nashville TN',         lat:36.24, lon:-86.56  },
-    { id:'KOKX', name:'New York NY',          lat:40.86, lon:-72.86  },
-    { id:'KOTX', name:'Spokane WA',           lat:47.68, lon:-117.62 },
-    { id:'KPAH', name:'Paducah KY',           lat:37.07, lon:-88.77  },
-    { id:'KPBZ', name:'Pittsburgh PA',        lat:40.53, lon:-80.21  },
-    { id:'KPDT', name:'Pendleton OR',         lat:45.69, lon:-118.85 },
-    { id:'KPOE', name:'Fort Polk LA',         lat:31.15, lon:-92.97  },
-    { id:'KPUX', name:'Pueblo CO',            lat:38.45, lon:-104.18 },
-    { id:'KRAX', name:'Raleigh NC',           lat:35.66, lon:-78.49  },
-    { id:'KRGX', name:'Reno NV',              lat:39.75, lon:-119.46 },
-    { id:'KRIW', name:'Riverton WY',          lat:43.06, lon:-108.47 },
-    { id:'KRLX', name:'Charleston WV',        lat:38.31, lon:-81.72  },
-    { id:'KRTX', name:'Portland OR',          lat:45.71, lon:-122.96 },
-    { id:'KSFX', name:'Pocatello ID',         lat:43.10, lon:-112.68 },
-    { id:'KSGF', name:'Springfield MO',       lat:37.23, lon:-93.40  },
-    { id:'KSHV', name:'Shreveport LA',        lat:32.45, lon:-93.84  },
-    { id:'KSJT', name:'San Angelo TX',        lat:31.37, lon:-100.49 },
-    { id:'KSOX', name:'Santa Ana CA',         lat:33.82, lon:-117.63 },
-    { id:'KSRX', name:'Fort Smith AR',        lat:35.29, lon:-94.36  },
-    { id:'KTBW', name:'Tampa FL',             lat:27.70, lon:-82.40  },
-    { id:'KTFX', name:'Great Falls MT',       lat:47.45, lon:-111.38 },
-    { id:'KTLH', name:'Tallahassee FL',       lat:30.39, lon:-84.32  },
-    { id:'KTLX', name:'Oklahoma City OK',     lat:35.33, lon:-97.27  },
-    { id:'KTWX', name:'Topeka KS',            lat:38.99, lon:-96.23  },
-    { id:'KTYX', name:'Watertown NY',         lat:43.75, lon:-75.68  },
-    { id:'KUDX', name:'Rapid City SD',        lat:44.12, lon:-102.83 },
-    { id:'KUEX', name:'Hastings NE',          lat:40.32, lon:-98.44  },
-    { id:'KVAX', name:'Valdosta GA',          lat:30.89, lon:-83.00  },
-    { id:'KVBX', name:'Santa Barbara CA',     lat:34.83, lon:-120.39 },
-    { id:'KVNX', name:'Vance AFB OK',         lat:36.74, lon:-98.13  },
-    { id:'KVTX', name:'Los Angeles CA',       lat:34.41, lon:-119.18 },
-    { id:'KVWX', name:'Evansville IN',        lat:38.26, lon:-87.72  },
-    { id:'KYUX', name:'Yuma AZ',              lat:32.49, lon:-114.65 },
+  { id:'KABR', name:'Aberdeen SD', lat:45.455833, lon:-98.413333 },
+  { id:'KABX', name:'Albuquerque NM', lat:35.149722, lon:-106.82388 },
+  { id:'KAKQ', name:'Norfolk Rich VA', lat:36.98405, lon:-77.007361 },
+  { id:'KAMA', name:'Amarillo TX', lat:35.233333, lon:-101.70927 },
+  { id:'KAMX', name:'Miami FL', lat:25.611083, lon:-80.412667 },
+  { id:'KAPX', name:'Gaylord MI', lat:44.90635, lon:-84.719533 },
+  { id:'KARX', name:'La Crosse WI', lat:43.822778, lon:-91.191111 },
+  { id:'KATX', name:'Seattle WA', lat:48.194611, lon:-122.49569 },
+  { id:'KBBX', name:'Beale Afb CA', lat:39.495639, lon:-121.63161 },
+  { id:'KBGM', name:'Binghamton NY', lat:42.199694, lon:-75.984722 },
+  { id:'KBHX', name:'Eureka CA', lat:40.498583, lon:-124.29216 },
+  { id:'KBIS', name:'Bismarck ND', lat:46.770833, lon:-100.76055 },
+  { id:'KBLX', name:'Billings MT', lat:45.853778, lon:-108.6068 },
+  { id:'KBMX', name:'Birmingham AL', lat:33.172417, lon:-86.770167 },
+  { id:'KBOX', name:'Boston MA', lat:41.955778, lon:-71.136861 },
+  { id:'KBRO', name:'Brownsville TX', lat:25.916, lon:-97.418967 },
+  { id:'KBUF', name:'Buffalo NY', lat:42.948789, lon:-78.736781 },
+  { id:'KBYX', name:'Key West FL', lat:24.5975, lon:-81.703167 },
+  { id:'KCAE', name:'Columbia SC', lat:33.948722, lon:-81.118278 },
+  { id:'KCBW', name:'Houlton ME', lat:46.03925, lon:-67.806431 },
+  { id:'KCBX', name:'Boise ID', lat:43.490217, lon:-116.23603 },
+  { id:'KCCX', name:'State College PA', lat:40.923167, lon:-78.003722 },
+  { id:'KCLE', name:'Cleveland OH', lat:41.413217, lon:-81.859867 },
+  { id:'KCLX', name:'Charleston SC', lat:32.655528, lon:-81.042194 },
+  { id:'KCRI', name:'Roc Faa Redundant Rda 1 OK', lat:35.238333, lon:-97.46 },
+  { id:'KCRP', name:'Corpus Christi TX', lat:27.784017, lon:-97.51125 },
+  { id:'KCXX', name:'Burlington VT', lat:44.511, lon:-73.166431 },
+  { id:'KCYS', name:'Cheyenne WY', lat:41.151919, lon:-104.80603 },
+  { id:'KDAX', name:'Sacramento CA', lat:38.501111, lon:-121.67783 },
+  { id:'KDDC', name:'Dodge City KS', lat:37.760833, lon:-99.968889 },
+  { id:'KDFX', name:'Laughlin Afb TX', lat:29.273139, lon:-100.28033 },
+  { id:'KDGX', name:'Jackson Brandon MS', lat:32.279944, lon:-89.984444 },
+  { id:'KDIX', name:'Philadelphia NJ', lat:39.947089, lon:-74.410731 },
+  { id:'KDLH', name:'Duluth MN', lat:46.836944, lon:-92.209722 },
+  { id:'KDMX', name:'Des Moines IA', lat:41.7312, lon:-93.722869 },
+  { id:'KDOX', name:'Dover Afb DE', lat:38.825767, lon:-75.440117 },
+  { id:'KDTX', name:'Detroit MI', lat:42.7, lon:-83.471667 },
+  { id:'KDVN', name:'Davenport IA', lat:41.611667, lon:-90.580833 },
+  { id:'KDYX', name:'Dyess Afb TX', lat:32.5385, lon:-99.254333 },
+  { id:'KEAX', name:'Kansas City MO', lat:38.81025, lon:-94.264472 },
+  { id:'KEMX', name:'Tucson AZ', lat:31.89365, lon:-110.63025 },
+  { id:'KENX', name:'Albany NY', lat:42.586556, lon:-74.064083 },
+  { id:'KEOX', name:'Fort Rucker AL', lat:31.460556, lon:-85.459389 },
+  { id:'KEPZ', name:'El Paso NM', lat:31.873056, lon:-106.698 },
+  { id:'KESX', name:'Las Vegas NV', lat:35.70135, lon:-114.89165 },
+  { id:'KEVX', name:'Eglin Afb FL', lat:30.565033, lon:-85.921667 },
+  { id:'KEWX', name:'Austin San Antonio TX', lat:29.704056, lon:-98.028611 },
+  { id:'KEYX', name:'Edwards CA', lat:35.09785, lon:-117.56075 },
+  { id:'KFCX', name:'Roanoke VA', lat:37.0244, lon:-80.273969 },
+  { id:'KFDR', name:'Altus Afb OK', lat:34.362194, lon:-98.976667 },
+  { id:'KFDX', name:'Cannon Afb NM', lat:34.634167, lon:-103.61888 },
+  { id:'KFFC', name:'Atlanta GA', lat:33.36355, lon:-84.56595 },
+  { id:'KFSD', name:'Sioux Falls SD', lat:43.587778, lon:-96.729444 },
+  { id:'KFSX', name:'Flagstaff AZ', lat:34.574333, lon:-111.19844 },
+  { id:'KFTG', name:'Denver Front Range Ap CO', lat:39.786639, lon:-104.5458 },
+  { id:'KFWS', name:'Dallas TX', lat:32.573, lon:-97.30315 },
+  { id:'KGGW', name:'Glasgow MT', lat:48.206361, lon:-106.62469 },
+  { id:'KGJX', name:'Grand Junction CO', lat:39.062169, lon:-108.21376 },
+  { id:'KGLD', name:'Goodland KS', lat:39.366944, lon:-101.70027 },
+  { id:'KGRB', name:'Green Bay WI', lat:44.498633, lon:-88.111111 },
+  { id:'KGRK', name:'Fort Hood TX', lat:30.721833, lon:-97.382944 },
+  { id:'KGRR', name:'Grand Rapids MI', lat:42.893889, lon:-85.544889 },
+  { id:'KGSP', name:'Greer SC', lat:34.883306, lon:-82.219833 },
+  { id:'KGWX', name:'Columbus Afb MS', lat:33.896917, lon:-88.329194 },
+  { id:'KGYX', name:'Portland ME', lat:43.891306, lon:-70.256361 },
+  { id:'KHDC', name:'Hammond Municipal Airport LA', lat:30.5193, lon:-90.4074 },
+  { id:'KHDX', name:'Holloman Afb NM', lat:33.077, lon:-106.12003 },
+  { id:'KHGX', name:'Houston TX', lat:29.4719, lon:-95.078733 },
+  { id:'KHNX', name:'San Joaquin Valley CA', lat:36.314181, lon:-119.63213 },
+  { id:'KHPX', name:'Fort Campbell KY', lat:36.736972, lon:-87.285583 },
+  { id:'KHTX', name:'Huntsville AL', lat:34.930556, lon:-86.083611 },
+  { id:'KICT', name:'Wichita KS', lat:37.654444, lon:-97.443056 },
+  { id:'KICX', name:'Cedar City UT', lat:37.59105, lon:-112.86218 },
+  { id:'KILN', name:'Cincinnati OH', lat:39.420483, lon:-83.82145 },
+  { id:'KILX', name:'Lincoln IL', lat:40.1505, lon:-89.336792 },
+  { id:'KIND', name:'Indianapolis IN', lat:39.7075, lon:-86.280278 },
+  { id:'KINX', name:'Tulsa OK', lat:36.175131, lon:-95.564161 },
+  { id:'KIWA', name:'Phoenix AZ', lat:33.289233, lon:-111.66991 },
+  { id:'KIWX', name:'Fort Wayne IN', lat:41.358611, lon:-85.7 },
+  { id:'KJAX', name:'Jacksonville FL', lat:30.484633, lon:-81.7019 },
+  { id:'KJGX', name:'Robins Afb GA', lat:32.675683, lon:-83.350833 },
+  { id:'KJKL', name:'Jackson KY', lat:37.590833, lon:-83.313056 },
+  { id:'KLBB', name:'Lubbock TX', lat:33.654139, lon:-101.81416 },
+  { id:'KLCH', name:'Lake Charles LA', lat:30.125306, lon:-93.215889 },
+  { id:'KLGX', name:'Langley Hill Nw Washington WA', lat:47.116944, lon:-124.10666 },
+  { id:'KLIX', name:'New Orleans LA', lat:30.336667, lon:-89.825417 },
+  { id:'KLNX', name:'North Platte NE', lat:41.957944, lon:-100.57622 },
+  { id:'KLOT', name:'Chicago IL', lat:41.604444, lon:-88.084444 },
+  { id:'KLRX', name:'Elko NV', lat:40.73955, lon:-116.8027 },
+  { id:'KLSX', name:'St Louis MO', lat:38.698611, lon:-90.682778 },
+  { id:'KLTX', name:'Wilmington NC', lat:33.98915, lon:-78.429108 },
+  { id:'KLVX', name:'Louisville KY', lat:37.975278, lon:-85.943889 },
+  { id:'KLWX', name:'Sterling VA', lat:38.976111, lon:-77.4875 },
+  { id:'KLZK', name:'Little Rock AR', lat:34.8365, lon:-92.262194 },
+  { id:'KMAF', name:'Midland Odessa TX', lat:31.943461, lon:-102.18925 },
+  { id:'KMAX', name:'Medford OR', lat:42.081169, lon:-122.71736 },
+  { id:'KMBX', name:'Minot Afb ND', lat:48.393056, lon:-100.86444 },
+  { id:'KMHX', name:'Morehead City NC', lat:34.775908, lon:-76.876189 },
+  { id:'KMKX', name:'Milwaukee WI', lat:42.9679, lon:-88.550667 },
+  { id:'KMLB', name:'Melbourne FL', lat:28.113194, lon:-80.654083 },
+  { id:'KMOB', name:'Mobile AL', lat:30.679444, lon:-88.24 },
+  { id:'KMPX', name:'Minneapolis MN', lat:44.848889, lon:-93.565528 },
+  { id:'KMQT', name:'Marquette MI', lat:46.531111, lon:-87.548333 },
+  { id:'KMRX', name:'Knoxville TN', lat:36.168611, lon:-83.401944 },
+  { id:'KMSX', name:'Missoula MT', lat:47.041, lon:-113.98622 },
+  { id:'KMTX', name:'Salt Lake City UT', lat:41.262778, lon:-112.44777 },
+  { id:'KMUX', name:'San Francisco CA', lat:37.155222, lon:-121.89844 },
+  { id:'KMVX', name:'Grand Forks ND', lat:47.527778, lon:-97.325556 },
+  { id:'KMXX', name:'Maxwell Afb AL', lat:32.53665, lon:-85.78975 },
+  { id:'KNKX', name:'San Diego CA', lat:32.919017, lon:-117.0418 },
+  { id:'KNQA', name:'Memphis TN', lat:35.344722, lon:-89.873333 },
+  { id:'KOAX', name:'Omaha NE', lat:41.320369, lon:-96.366819 },
+  { id:'KOHX', name:'Nashville TN', lat:36.247222, lon:-86.5625 },
+  { id:'KOKX', name:'New York City NY', lat:40.865528, lon:-72.863917 },
+  { id:'KOTX', name:'Spokane WA', lat:47.680417, lon:-117.62677 },
+  { id:'KOUN', name:'Norman Nssl OK', lat:35.236058, lon:-97.46235 },
+  { id:'KPAH', name:'Paducah KY', lat:37.068333, lon:-88.771944 },
+  { id:'KPBZ', name:'Pittsburgh PA', lat:40.531717, lon:-80.217967 },
+  { id:'KPDT', name:'Pendleton OR', lat:45.69065, lon:-118.85293 },
+  { id:'KPOE', name:'Fort Polk LA', lat:31.155278, lon:-92.976111 },
+  { id:'KPUX', name:'Pueblo CO', lat:38.45955, lon:-104.18135 },
+  { id:'KRAX', name:'Raleigh Durham NC', lat:35.665519, lon:-78.48975 },
+  { id:'KRGX', name:'Reno NV', lat:39.754056, lon:-119.46202 },
+  { id:'KRIW', name:'Riverton WY', lat:43.066089, lon:-108.4773 },
+  { id:'KRLX', name:'Charleston WV', lat:38.311111, lon:-81.722778 },
+  { id:'KRTX', name:'Portland OR', lat:45.715039, lon:-122.965 },
+  { id:'KSFX', name:'Pocatello ID', lat:43.1056, lon:-112.68613 },
+  { id:'KSGF', name:'Springfield MO', lat:37.235239, lon:-93.400419 },
+  { id:'KSHV', name:'Shreveport LA', lat:32.450833, lon:-93.84125 },
+  { id:'KSJT', name:'San Angelo TX', lat:31.371278, lon:-100.4925 },
+  { id:'KSOX', name:'Santa Ana Mountains CA', lat:33.817733, lon:-117.636 },
+  { id:'KSRX', name:'Fort Smith AR', lat:35.290417, lon:-94.361889 },
+  { id:'KTBW', name:'Tampa FL', lat:27.7055, lon:-82.401778 },
+  { id:'KTFX', name:'Great Falls MT', lat:47.459583, lon:-111.38533 },
+  { id:'KTLH', name:'Tallahassee FL', lat:30.397583, lon:-84.328944 },
+  { id:'KTLX', name:'Oklahoma City OK', lat:35.333361, lon:-97.277761 },
+  { id:'KTWX', name:'Topeka KS', lat:38.99695, lon:-96.23255 },
+  { id:'KTYX', name:'Fort Drum NY', lat:43.755694, lon:-75.679861 },
+  { id:'KUDX', name:'Rapid City SD', lat:44.124722, lon:-102.83 },
+  { id:'KUEX', name:'Hastings NE', lat:40.320833, lon:-98.441944 },
+  { id:'KVAX', name:'Moody Afb GA', lat:30.890278, lon:-83.001806 },
+  { id:'KVBX', name:'Vandenberg Afb CA', lat:34.83855, lon:-120.39791 },
+  { id:'KVNX', name:'Vance Afb OK', lat:36.740617, lon:-98.127717 },
+  { id:'KVTX', name:'Los Angeles CA', lat:34.412017, lon:-119.17875 },
+  { id:'KVWX', name:'Evansville IN', lat:38.26025, lon:-87.724528 },
+  { id:'KYUX', name:'Yuma AZ', lat:32.495281, lon:-114.65671 },
+  { id:'LPLA', name:'Lajes Ab', lat:38.73028, lon:-27.32167 },
+  { id:'PABC', name:'Bethel Faa AK', lat:60.791944, lon:-161.87638 },
+  { id:'PACG', name:'Sitka AK', lat:56.852778, lon:-135.52916 },
+  { id:'PAEC', name:'Nome AK', lat:64.511389, lon:-165.295 },
+  { id:'PAHG', name:'Anchorage AK', lat:60.725914, lon:-151.35146 },
+  { id:'PAIH', name:'Middleton Island AK', lat:59.460767, lon:-146.30344 },
+  { id:'PAKC', name:'King Salmon AK', lat:58.679444, lon:-156.62944 },
+  { id:'PAPD', name:'Fairbanks AK', lat:65.035114, lon:-147.50143 },
+  { id:'PGUA', name:'Andersen Afb Agana GU', lat:13.455833, lon:144.811111 },
+  { id:'PHKI', name:'South Kauai HI', lat:21.893889, lon:-159.5525 },
+  { id:'PHKM', name:'Kamuela HI', lat:20.125278, lon:-155.77777 },
+  { id:'PHMO', name:'Molokai HI', lat:21.132778, lon:-157.18027 },
+  { id:'PHWA', name:'South Shore HI', lat:19.095, lon:-155.56888 },
+  { id:'RKJK', name:'Kunsan', lat:35.924167, lon:126.622222 },
+  { id:'RKSG', name:'Camp Humphreys', lat:37.207569, lon:127.285561 },
+  { id:'RODN', name:'Kadena', lat:26.3078, lon:127.903469 },
+  { id:'TJUA', name:'San Juan PR', lat:18.115667, lon:-66.078167 },
   ];
+
+  // Expose for loadNexradL2 fly-to
+  window._nexradStations = STATIONS;
 
   // ── State ──────────────────────────────────────────────────
   let currentStation = null;
@@ -5247,9 +5396,9 @@ document.addEventListener('click', function(e) {
   });
 
   function switchToStation(s) {
-    // Load L2 for the chosen station via IEM tiles
-    if (typeof loadNexradL2 === 'function') {
-      loadNexradL2(s.id);
+    // Only load if user explicitly picked — not on initial auto-detect
+    if (window._userPickedStation) {
+      if (typeof loadNexradL2 === 'function') loadNexradL2(s.id);
     }
   }
 
@@ -5297,7 +5446,10 @@ document.addEventListener('click', function(e) {
   // Expose for inline onclick
   window._lrbSetStation = function(id) {
     const s = STATIONS.find(x => x.id === id);
-    if (s) setStation(s);
+    if (s) {
+      window._userPickedStation = true; // mark as explicit user choice
+      setStation(s);
+    }
   };
 
   // ── Tilt cycling ───────────────────────────────────────────
@@ -6500,5 +6652,196 @@ window.flyToAlertWithFlash = function(feature) {
     } catch(e) {}
   }
 
+})();
+</script>
+
+<!-- ===== NEXRAD SITES MAP CIRCLES ===== -->
+<style>
+  #tb-nexrad-sites.active {
+    background: rgba(0,180,255,0.2) !important;
+    border-color: rgba(0,200,255,0.7) !important;
+    color: #00ddff !important;
+    box-shadow: 0 0 10px rgba(0,200,255,0.3);
+  }
+  .nexrad-site-popup {
+    font-family: 'Bebas Neue', Arial, sans-serif;
+    color: #fff;
+    min-width: 160px;
+  }
+  .nexrad-site-popup .site-id {
+    font-size: 22px;
+    letter-spacing: 3px;
+    color: #00ddff;
+    line-height: 1;
+  }
+  .nexrad-site-popup .site-name {
+    font-size: 13px;
+    color: rgba(200,240,255,0.8);
+    letter-spacing: 1px;
+    margin: 2px 0 8px;
+  }
+  .nexrad-site-popup .site-load-btn {
+    display: block;
+    width: 100%;
+    padding: 6px;
+    background: linear-gradient(90deg, #005080, #003060);
+    border: 1px solid rgba(0,200,255,0.4);
+    border-radius: 4px;
+    color: #00ddff;
+    font-family: 'Bebas Neue', Arial, sans-serif;
+    font-size: 13px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    text-align: center;
+    box-sizing: border-box;
+  }
+  .nexrad-site-popup .site-load-btn:hover {
+    background: linear-gradient(90deg, #0070b0, #004090);
+  }
+</style>
+<script>
+(function() {
+  const SOURCE_ID = 'nexrad-sites-circles';
+  const LAYER_RING  = 'nexrad-sites-ring';
+  const LAYER_DOT   = 'nexrad-sites-dot';
+  const LAYER_LABEL = 'nexrad-sites-label';
+  let _visible = false;
+  let _popup = null;
+
+  // Build GeoJSON from the STATIONS array (populated by local radar bar IIFE)
+  function _buildGeojson() {
+    const stations = window._nexradStations || [];
+    return {
+      type: 'FeatureCollection',
+      features: stations.map(s => ({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [s.lon, s.lat] },
+        properties: { id: s.id, name: s.name }
+      }))
+    };
+  }
+
+  function _addLayers() {
+    if (map.getSource(SOURCE_ID)) return;
+
+    map.addSource(SOURCE_ID, {
+      type: 'geojson',
+      data: _buildGeojson()
+    });
+
+    const firstSym = (map.getStyle().layers || []).find(l => l.type === 'symbol');
+
+    // Outer range ring (large translucent circle ~230km radius visual)
+    map.addLayer({
+      id: LAYER_RING,
+      type: 'circle',
+      source: SOURCE_ID,
+      paint: {
+        'circle-radius': [
+          'interpolate', ['linear'], ['zoom'],
+          3,  8,
+          5,  18,
+          7,  45,
+          9,  110,
+          11, 260
+        ],
+        'circle-color': 'rgba(0,180,255,0.0)',
+        'circle-stroke-color': 'rgba(0,200,255,0.35)',
+        'circle-stroke-width': 1.5,
+        'circle-pitch-alignment': 'map'
+      }
+    }, firstSym ? firstSym.id : undefined);
+
+    // Center dot
+    map.addLayer({
+      id: LAYER_DOT,
+      type: 'circle',
+      source: SOURCE_ID,
+      paint: {
+        'circle-radius': ['interpolate', ['linear'], ['zoom'], 3, 3, 8, 6, 12, 9],
+        'circle-color': '#00ddff',
+        'circle-stroke-color': '#ffffff',
+        'circle-stroke-width': 1.5,
+        'circle-opacity': 0.9,
+        'circle-pitch-alignment': 'map'
+      }
+    }, firstSym ? firstSym.id : undefined);
+
+    // Site ID label
+    map.addLayer({
+      id: LAYER_LABEL,
+      type: 'symbol',
+      source: SOURCE_ID,
+      minzoom: 4,
+      layout: {
+        'text-field': ['get', 'id'],
+        'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+        'text-size': ['interpolate', ['linear'], ['zoom'], 4, 8, 8, 12, 11, 14],
+        'text-offset': [0, 1.4],
+        'text-anchor': 'top',
+        'text-allow-overlap': false,
+        'text-ignore-placement': false
+      },
+      paint: {
+        'text-color': '#00ddff',
+        'text-halo-color': 'rgba(0,0,0,0.85)',
+        'text-halo-width': 2
+      }
+    });
+
+    // Click popup
+    map.on('click', LAYER_DOT, function(e) {
+      if (!e.features || !e.features.length) return;
+      const props = e.features[0].properties;
+      const coords = e.features[0].geometry.coordinates;
+
+      if (_popup) _popup.remove();
+      _popup = new maptilersdk.Popup({
+        closeButton: true,
+        closeOnClick: false,
+        className: 'nexrad-site-popup-wrap'
+      })
+      .setLngLat(coords)
+      .setHTML(`
+        <div class="nexrad-site-popup">
+          <div class="site-id">📡 ${props.id}</div>
+          <div class="site-name">${props.name}</div>
+          <button class="site-load-btn" onclick="
+            window._userPickedStation = true;
+            loadNexradL2('${props.id}');
+            document.querySelectorAll('.maplibregl-popup,.mapboxgl-popup').forEach(p=>p.remove());
+          ">⚡ LOAD THIS RADAR</button>
+        </div>
+      `)
+      .addTo(map);
+    });
+
+    map.on('mouseenter', LAYER_DOT, () => map.getCanvas().style.cursor = 'pointer');
+    map.on('mouseleave', LAYER_DOT, () => map.getCanvas().style.cursor = '');
+  }
+
+  function _removeLayers() {
+    [LAYER_LABEL, LAYER_DOT, LAYER_RING].forEach(id => {
+      if (map.getLayer(id)) try { map.removeLayer(id); } catch(e) {}
+    });
+    if (map.getSource(SOURCE_ID)) try { map.removeSource(SOURCE_ID); } catch(e) {}
+    if (_popup) { _popup.remove(); _popup = null; }
+  }
+
+  window.toggleNexradSites = function() {
+    _visible = !_visible;
+    const btn = document.getElementById('tb-nexrad-sites');
+    if (btn) btn.classList.toggle('active', _visible);
+
+    if (_visible) {
+      if (map.loaded()) {
+        _addLayers();
+      } else {
+        map.once('load', _addLayers);
+      }
+    } else {
+      _removeLayers();
+    }
+  };
 })();
 </script>
