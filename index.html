@@ -3630,7 +3630,7 @@ const IEM_N = 15;
 
     // Wire up filter buttons
     document.getElementById('alerts-filter-all').addEventListener('click', () => renderAlerts('all'));
-    document.getElementById('alerts-filter-warnings').addEventListener('click', () => renderAlerts('warnings'));
+    document.getElementById('alerts-filter-warnings').addEventListener('click', () => { window.playClickSound(); renderAlerts('warnings'); });
     const watchesBtn = document.getElementById('alerts-filter-watches');
     if (watchesBtn) watchesBtn.addEventListener('click', () => renderAlerts('watches'));
     const advisoriesBtn = document.getElementById('alerts-filter-advisories');
@@ -3663,6 +3663,7 @@ const IEM_N = 15;
 
     // Keep the existing warning-icon toggle behavior
     document.querySelector('.warning-icon').addEventListener('click', function() {
+      window.playClickSound();
       const alertsList = document.getElementById('nws-alerts-list');
       if (alertsList.classList.contains('visible')) {
         alertsList.style.opacity = '0';
@@ -4298,6 +4299,19 @@ function showEyeWatchDescription(meta, color = "#00FFFF", title = "Eye Watch") {
 //  ALERT INFO CONTAINER
 // ============================================================
 (function(){
+  window.playClickSound = function() {
+    if (!window._clickSound) {
+      window._clickSound = new Audio('clicksoundeffect.mp3');
+      window._clickSound.preload = 'auto';
+    }
+    try {
+      window._clickSound.currentTime = 0;
+      window._clickSound.play();
+    } catch (err) {
+      // ignore autoplay/user gesture restrictions
+    }
+  };
+
   const card = document.getElementById('alert-info-card');
   const container = document.getElementById('alert-info-container');
 
@@ -4397,6 +4411,8 @@ function showEyeWatchDescription(meta, color = "#00FFFF", title = "Eye Watch") {
   };
 
   document.getElementById('alert-info-close').addEventListener('click', function() {
+    window.playClickSound();
+    if (window.stopPersistentFlash) window.stopPersistentFlash();
     card.style.display = 'none';
   });
 
@@ -4404,6 +4420,7 @@ function showEyeWatchDescription(meta, color = "#00FFFF", title = "Eye Watch") {
   document.getElementById('nws-alerts-list-content').addEventListener('click', function(e) {
     const item = e.target.closest('.nws-alert-item');
     if (!item) return;
+    window.playClickSound();
     const id = item.getAttribute('data-alert-id');
     if (!id) return;
     const feature = (window.polygonsById || {})[id];
@@ -4714,6 +4731,7 @@ window.toggleSPCLayer = async function() {
 };
 
 document.getElementById('spc-info-close').addEventListener('click', ()=>{
+  window.playClickSound();
   document.getElementById('spc-info-card').style.display='none';
 });
 
@@ -5028,6 +5046,7 @@ document.getElementById('spc-info-close').addEventListener('click', ()=>{
   });
 
   document.getElementById('eccc-info-close').addEventListener('click', () => {
+    window.playClickSound();
     document.getElementById('eccc-info-card').style.display = 'none';
   });
 
@@ -5526,6 +5545,7 @@ document.getElementById('spc-info-close').addEventListener('click', ()=>{
   }
 
   document.getElementById('raw-info-close').addEventListener('click', () => {
+    window.playClickSound();
     document.getElementById('raw-info-card').style.display = 'none';
   });
 
@@ -5801,6 +5821,7 @@ document.getElementById('spc-info-close').addEventListener('click', ()=>{
 
   // Close button
   document.getElementById('md-info-close').addEventListener('click', () => {
+    window.playClickSound();
     document.getElementById('md-info-card').style.display = 'none';
   });
 
@@ -6062,12 +6083,12 @@ window.toggleTropical = async function() {
 
   if (!pointFeatures.length && !stormFeatures.length) {
     hideLoading();
-    document.getElementById('tropical-info-title').textContent = 'TROPICAL';
-    document.getElementById('tropical-info-body').innerHTML = `
-      <div style="padding:10px 14px 14px;font-size:12px;color:rgba(200,150,255,0.7);letter-spacing:1px;">
-        No active tropical cyclones at this time.
-      </div>`;
-    document.getElementById('tropical-info-card').style.display = 'block';
+    // Just show a brief loading message — don't open the card unprompted
+    showLoading('No active tropical cyclones at this time.');
+    setTimeout(hideLoading, 3000);
+    // Turn off the button since there's nothing to show
+    document.getElementById('tb-tropical').classList.remove('active');
+    tropicalActive = false;
     return;
   }
 
