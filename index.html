@@ -980,6 +980,435 @@
       border-radius: 3px;
     }
     .hl-result-item:hover { background: rgba(0,100,200,0.25); color: #fff; }
+
+    /* ================================================================
+       CAMERA / TOWER CAM LAYOUT
+       ================================================================ */
+    body.cam-mode #map {
+      left: 310px !important;
+      right: 300px !important;
+      top: 110px !important;
+      width: auto !important;
+      height: auto !important;
+      bottom: 0 !important;
+    }
+
+    /* ── Left sidebar ── */
+    #cam-sidebar {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      width: 310px;
+      background: #111114;
+      border-right: 1px solid rgba(255,255,255,0.07);
+      z-index: 2000;
+      flex-direction: column;
+      font-family: 'Bebas Neue', Arial, sans-serif;
+    }
+    body.cam-mode #cam-sidebar { display: flex; }
+
+    #cam-sidebar-header {
+      background: #1a1a20;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      padding: 10px 12px 8px;
+      flex-shrink: 0;
+    }
+    #cam-sidebar-title {
+      font-size: 15px;
+      letter-spacing: 3px;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+    #cam-search {
+      width: 100%;
+      box-sizing: border-box;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 5px;
+      color: #fff;
+      font-family: 'Bebas Neue', Arial, sans-serif;
+      font-size: 13px;
+      letter-spacing: 1px;
+      padding: 6px 10px;
+      outline: none;
+    }
+    #cam-search::placeholder { color: rgba(255,255,255,0.3); }
+
+    #cam-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+    #cam-list::-webkit-scrollbar { width: 4px; }
+    #cam-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+    .cam-item {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: background 0.15s;
+    }
+    .cam-item:hover { background: rgba(255,255,255,0.05); }
+    .cam-item.selected { background: rgba(0,180,255,0.08); }
+    .cam-item-info {}
+    .cam-item-name {
+      font-size: 14px;
+      letter-spacing: 1px;
+      color: #e8e8f0;
+    }
+    .cam-item-loc {
+      font-size: 11px;
+      letter-spacing: 1px;
+      color: rgba(255,255,255,0.35);
+      margin-top: 1px;
+    }
+    .cam-badge {
+      font-size: 9px;
+      letter-spacing: 2px;
+      padding: 2px 7px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+    .cam-badge.live {
+      background: rgba(0,150,255,0.2);
+      color: #33aaff;
+      border: 1px solid rgba(0,150,255,0.35);
+    }
+    .cam-badge.inuse {
+      background: rgba(0,150,255,0.2);
+      color: #33aaff;
+      border: 1px solid rgba(0,150,255,0.35);
+    }
+
+    /* Timers section */
+    #cam-timers {
+      border-top: 1px solid rgba(255,255,255,0.07);
+      background: #1a1a20;
+      flex-shrink: 0;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    #cam-timers-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px 6px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    #cam-timers-title {
+      font-size: 14px;
+      letter-spacing: 2px;
+      color: #fff;
+    }
+    #cam-timers-btns { display: flex; gap: 5px; }
+    .cam-timer-btn {
+      font-family: 'Bebas Neue', Arial, sans-serif;
+      font-size: 10px;
+      letter-spacing: 1px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 4px;
+      color: rgba(255,255,255,0.6);
+      padding: 3px 8px;
+      cursor: pointer;
+    }
+    .cam-timer-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+    #cam-timers-list { padding: 4px 0; }
+    .cam-timer-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 5px 14px;
+    }
+    .cam-timer-name {
+      font-size: 12px;
+      letter-spacing: 1px;
+      color: #ccc;
+    }
+    .cam-timer-sub {
+      font-size: 10px;
+      color: rgba(255,255,255,0.3);
+      letter-spacing: 0.5px;
+    }
+    .cam-timer-val {
+      font-size: 13px;
+      letter-spacing: 1px;
+      color: #33aaff;
+    }
+
+    /* ── Top camera strip ── */
+    #cam-strip {
+      z-index: 600;
+      display: none;
+      position: fixed;
+      top: 0; left: 310px; right: 300px;
+      height: 110px;
+      background: #0d0d10;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      z-index: 499;
+      flex-direction: row;
+      overflow-x: auto;
+      gap: 2px;
+      align-items: stretch;
+    }
+    body.cam-mode #cam-strip { display: flex; z-index: 600; }
+    body.cam-mode #layers-toolbar { top: 110px !important; left: 320px !important; }
+    #cam-strip::-webkit-scrollbar { height: 3px; }
+    #cam-strip::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
+
+    .cam-strip-cell {
+      flex-shrink: 0;
+      width: 150px;
+      background: #18181e;
+      border-right: 1px solid rgba(255,255,255,0.05);
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+      transition: background 0.15s;
+      position: relative;
+    }
+    .cam-strip-cell:hover { background: #222228; }
+    .cam-strip-cell.active { background: rgba(0,150,255,0.12); border-color: rgba(0,150,255,0.3); }
+
+    .cam-strip-onair {
+      background: linear-gradient(90deg, #0055cc, #0033aa);
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: #fff;
+      text-align: center;
+      padding: 3px 0;
+      font-family: 'Bebas Neue', Arial, sans-serif;
+    }
+    .cam-strip-name {
+      font-family: 'Bebas Neue', Arial, sans-serif;
+      font-size: 13px;
+      letter-spacing: 1px;
+      color: #e0e0ec;
+      padding: 5px 8px 1px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .cam-strip-loc {
+      font-family: 'Bebas Neue', Arial, sans-serif;
+      font-size: 10px;
+      letter-spacing: 1px;
+      color: rgba(255,255,255,0.35);
+      padding: 0 8px 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .cam-strip-actions {
+      display: flex;
+      gap: 4px;
+      padding: 0 6px 6px;
+      margin-top: auto;
+    }
+    .cam-strip-btn {
+      flex: 1;
+      font-family: 'Bebas Neue', Arial, sans-serif;
+      font-size: 10px;
+      letter-spacing: 1px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 3px;
+      color: rgba(255,255,255,0.65);
+      padding: 3px 0;
+      cursor: pointer;
+      text-align: center;
+    }
+    .cam-strip-btn.play { background: rgba(0,120,255,0.2); border-color: rgba(0,120,255,0.35); color: #66aaff; }
+    .cam-strip-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
+
+    /* ── Right preview panel ── */
+    #cam-right {
+      display: none;
+      position: fixed;
+      top: 0; right: 0; bottom: 0;
+      width: 300px;
+      background: #111114;
+      border-left: 1px solid rgba(255,255,255,0.07);
+      z-index: 2000;
+      flex-direction: column;
+    }
+    body.cam-mode #cam-right { display: flex; }
+
+    #cam-embed-box {
+      flex-shrink: 0;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    #cam-embed-input-row {
+      display: flex;
+      gap: 4px;
+      padding: 8px;
+    }
+    #cam-embed-input {
+      flex: 1;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 4px;
+      color: #fff;
+      font-family: 'Bebas Neue', Arial, sans-serif;
+      font-size: 11px;
+      padding: 5px 8px;
+      outline: none;
+      letter-spacing: 0.5px;
+    }
+    #cam-embed-input::placeholder { color: rgba(255,255,255,0.25); font-size: 10px; }
+    #cam-embed-go {
+      font-family: 'Bebas Neue', Arial, sans-serif;
+      font-size: 10px;
+      letter-spacing: 1px;
+      background: rgba(0,120,255,0.25);
+      border: 1px solid rgba(0,120,255,0.4);
+      border-radius: 4px;
+      color: #66aaff;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+    #cam-embed-go:hover { background: rgba(0,120,255,0.4); }
+    #cam-embed-frame {
+      width: 100%;
+      height: 170px;
+      background: #000;
+      border: none;
+      display: block;
+    }
+    #cam-embed-label {
+      font-family: 'Bebas Neue', Arial, sans-serif;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: rgba(255,255,255,0.3);
+      padding: 4px 8px;
+    }
+
+    #cam-previews {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    #cam-previews::-webkit-scrollbar { width: 4px; }
+    #cam-previews::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+    .cam-preview-item {
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      padding: 8px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .cam-preview-item:hover { background: rgba(255,255,255,0.04); }
+    .cam-preview-thumb {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      background: #222;
+      border-radius: 3px;
+      display: block;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .cam-preview-name {
+      font-family: 'Bebas Neue', Arial, sans-serif;
+      font-size: 12px;
+      letter-spacing: 1px;
+      color: #ccc;
+      margin-top: 5px;
+    }
+    .cam-preview-loc {
+      font-family: 'Bebas Neue', Arial, sans-serif;
+      font-size: 10px;
+      letter-spacing: 1px;
+      color: rgba(255,255,255,0.3);
+    }
+    .cam-preview-link {
+      font-family: 'Bebas Neue', Arial, sans-serif;
+      font-size: 9px;
+      letter-spacing: 1px;
+      color: rgba(0,150,255,0.6);
+      word-break: break-all;
+      margin-top: 2px;
+    }
+
+    /* ── Bottom bar buttons ── */
+    #cam-bottom-bar {
+      display: none;
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 600;
+      gap: 10px;
+    }
+    body.cam-mode #cam-bottom-bar { display: flex; }
+
+    .cam-bottom-btn {
+      font-family: 'Bebas Neue', Arial, sans-serif;
+      font-size: 13px;
+      letter-spacing: 2px;
+      padding: 9px 22px;
+      border-radius: 6px;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.5);
+      transition: all 0.15s;
+    }
+    #cam-btn-show-radar {
+      background: #2a7a2a;
+      color: #cfffcf;
+      border: 1px solid rgba(100,255,100,0.25);
+    }
+    #cam-btn-show-radar:hover { background: #338833; }
+    #cam-btn-hide-cams {
+      background: #0044aa;
+      color: #aaccff;
+      border: 1px solid rgba(100,160,255,0.25);
+    }
+    #cam-btn-hide-cams:hover { background: #0055cc; }
+
+    /* Toolbar button for cams */
+    #tb-tower-cams.active {
+      background: rgba(0,120,255,0.2) !important;
+      border-color: rgba(0,120,255,0.5) !important;
+      color: #66aaff !important;
+    }
+
+    /* ── Map camera markers ── */
+    .cam-marker {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #22cc22;
+      border: 2px solid rgba(255,255,255,0.8);
+      box-shadow: 0 0 0 0 rgba(34,204,34,0.5);
+      animation: cam-pulse 2.5s ease-in-out infinite;
+      cursor: pointer;
+    }
+    .cam-marker.inuse {
+      background: #cc2222;
+      box-shadow: 0 0 0 0 rgba(204,34,34,0.5);
+      animation: cam-pulse-red 2.5s ease-in-out infinite;
+    }
+    @keyframes cam-pulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(34,204,34,0.5); }
+      50%      { box-shadow: 0 0 0 6px rgba(34,204,34,0); }
+    }
+    @keyframes cam-pulse-red {
+      0%,100% { box-shadow: 0 0 0 0 rgba(204,34,34,0.5); }
+      50%      { box-shadow: 0 0 0 6px rgba(204,34,34,0); }
+    }
+
+    /* Cam mode — adjust existing fixed panels */
+    body.cam-mode #nws-alerts-list { right: 310px; }
+    body.cam-mode #deep-research-panel { right: 310px; }
+    body.cam-mode .eye-watch-panel { right: 310px; }
+    body.cam-mode #tropical-info-card { right: 310px; }
+    body.cam-mode #storm-report-card { right: 310px; }
+    body.cam-mode #local-radar-bar { right: 310px; }
+
   </style>
   <style>
     #alert-info-container {
@@ -1668,6 +2097,17 @@
         </div>
       </div>
     </div>
+
+    <!-- Shared Locations Toggle -->
+    <button class="toolbar-btn" id="tb-shared-locations" onclick="toggleSharedLocations()" style="background:rgba(0,212,245,0.12);border-color:rgba(0,212,245,0.35);color:#00d4f5;">
+      <span class="btn-icon">📍</span>SHARED LOCATIONS
+    </button>
+
+    <!-- Tower Cams -->
+    <button class="toolbar-btn" id="tb-tower-cams" onclick="toggleTowerCams()">
+      <span class="btn-icon">📷</span>TOWER CAMS
+    </button>
+
   </div>
 
   <!-- ===== STORM TRACK DRAW BANNER ===== -->
@@ -1831,6 +2271,60 @@
 
     <div id="nws-alerts-list-content"></div>
   </div>
+
+  <!-- ================================================================
+       TOWER CAMS — LEFT SIDEBAR
+  ================================================================ -->
+  <div id="cam-sidebar">
+    <div id="cam-sidebar-header">
+      <div id="cam-sidebar-title">CAMERA LIST</div>
+      <input id="cam-search" type="text" placeholder="Search cameras..." oninput="camSearchFilter(this.value)">
+    </div>
+    <div id="cam-list">
+      <div style="font-family:'Bebas Neue',Arial,sans-serif;font-size:11px;letter-spacing:2px;color:rgba(255,255,255,0.25);padding:12px 14px;">LOADING CAMERAS…</div>
+    </div>
+    <div id="cam-timers">
+      <div id="cam-timers-header">
+        <div id="cam-timers-title">Timers</div>
+        <div id="cam-timers-btns">
+          <button class="cam-timer-btn" onclick="generateCamReport()">Generate Report</button>
+          <button class="cam-timer-btn" onclick="clearCamTimers()">Clear Timers</button>
+        </div>
+      </div>
+      <div id="cam-timers-list">
+        <div style="font-family:'Bebas Neue',Arial,sans-serif;font-size:11px;letter-spacing:1px;color:rgba(255,255,255,0.2);padding:8px 14px;">No active timers</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================
+       TOWER CAMS — TOP STRIP
+  ================================================================ -->
+  <div id="cam-strip" id="cam-strip"></div>
+
+  <!-- ================================================================
+       TOWER CAMS — RIGHT PREVIEW PANEL
+  ================================================================ -->
+  <div id="cam-right">
+    <div id="cam-embed-box">
+      <div id="cam-embed-input-row">
+        <input id="cam-embed-input" type="text" placeholder="Enter HLS or YouTube URL…">
+        <button id="cam-embed-go" onclick="loadCamEmbed()">LOAD</button>
+      </div>
+      <iframe id="cam-embed-frame" src="about:blank" allowfullscreen allow="autoplay"></iframe>
+      <div id="cam-embed-label">NO FEED LOADED</div>
+    </div>
+    <div id="cam-previews"></div>
+  </div>
+
+  <!-- ================================================================
+       TOWER CAMS — BOTTOM BAR
+  ================================================================ -->
+  <div id="cam-bottom-bar">
+    <button class="cam-bottom-btn" id="cam-btn-show-radar" onclick="camShowRadar()">Show Radar</button>
+    <button class="cam-bottom-btn" id="cam-btn-hide-cams" onclick="camHideTowerCams()">Hide Tower Cams</button>
+  </div>
+
   <div id="map"></div>
   <!-- Radar Time Slider UI -->
   <div id="radar-slider-container">
@@ -5840,7 +6334,9 @@ const STORM_REPORT_ICONS = { hail:'🟡', wind:'🔵', tornado:'🔴', tstm:'⚡
 window.toggleStormReports = async function() {
   const btn = document.getElementById('tb-storm-reports');
   if (stormReportsActive) {
-    if(map.getLayer('storm-reports')) {try{map.removeLayer('storm-reports');}catch(e){}}
+    ['storm-reports-highlight','storm-reports-rim','storm-reports','storm-reports-shadow'].forEach(id => {
+      if(map.getLayer(id)) {try{map.removeLayer(id);}catch(e){}}
+    });
     if(map.getSource('storm-reports')) {try{map.removeSource('storm-reports');}catch(e){}}
     stormReportsActive = false;
     btn.classList.remove('active');
@@ -5871,10 +6367,51 @@ window.toggleStormReports = async function() {
     if (map.getSource('storm-reports')) { map.getSource('storm-reports').setData(gj); }
     else {
       map.addSource('storm-reports', { type:'geojson', data: gj, cluster:true, clusterMaxZoom:9, clusterRadius:40 });
+
+      // ── Glossy storm report dots ──────────────────────────
+      // Layer 1: soft drop shadow (slightly offset, blurred via low opacity + larger radius)
+      map.addLayer({ id:'storm-reports-shadow', type:'circle', source:'storm-reports',
+        paint:{
+          'circle-radius': ['case',['has','point_count'],['step',['get','point_count'],12,10,18,50,24],9],
+          'circle-color': '#000000',
+          'circle-opacity': 0.35,
+          'circle-translate': [1.5, 2],
+          'circle-blur': 0.6
+        }
+      });
+
+      // Layer 2: main glossy sphere body with radial-style shading via stroke
       map.addLayer({ id:'storm-reports', type:'circle', source:'storm-reports',
-        paint:{ 'circle-radius':['case',['has','point_count'],['step',['get','point_count'],10,10,16,50,22],7],
-                'circle-color':['case',['has','point_count'],'#ff8800',['get','_srColor']],
-                'circle-stroke-width':2, 'circle-stroke-color':'#000' }
+        paint:{
+          'circle-radius':['case',['has','point_count'],['step',['get','point_count'],10,10,16,50,22],7],
+          'circle-color':['case',['has','point_count'],'#ff8800',['get','_srColor']],
+          'circle-opacity': 0.95,
+          'circle-stroke-width': 1.5,
+          'circle-stroke-color': 'rgba(0,0,0,0.45)',
+          'circle-stroke-opacity': 0.6
+        }
+      });
+
+      // Layer 3: glassy rim highlight (thin bright outline near top edge feel)
+      map.addLayer({ id:'storm-reports-rim', type:'circle', source:'storm-reports',
+        paint:{
+          'circle-radius':['case',['has','point_count'],['step',['get','point_count'],10,10,16,50,22],7],
+          'circle-color': 'transparent',
+          'circle-stroke-width': 1,
+          'circle-stroke-color': 'rgba(255,255,255,0.55)',
+          'circle-stroke-opacity': 0.8
+        }
+      });
+
+      // Layer 4: small bright specular highlight, offset upper-left, smaller radius
+      map.addLayer({ id:'storm-reports-highlight', type:'circle', source:'storm-reports',
+        paint:{
+          'circle-radius': ['case',['has','point_count'],['step',['get','point_count'],4,10,6,50,8],2.6],
+          'circle-color': '#ffffff',
+          'circle-opacity': 0.85,
+          'circle-blur': 0.4,
+          'circle-translate': ['case',['has','point_count'],[-4,-5],[-2.2,-2.6]]
+        }
       });
 
       map.on('click','storm-reports', function(e) {
@@ -5979,180 +6516,466 @@ window.toggleModel = async function(key, label) {
 };
 
 // ============================================================
-//  TROPICAL TRACKS & CONES (NHC)
+//  TROPICAL TRACKS & CONES (NHC) — rebuilt
 // ============================================================
+// Strategy: NHC publishes per-storm GIS files. We fetch the
+// active-storms index JSON first, then pull each storm's
+// track + cone GeoJSON directly (no CORS proxy needed for
+// nhc.noaa.gov/gis/json/* when the browser allows it).
+// Fallback: corsproxy.io wrapping if direct fetch fails.
+// ============================================================
+
 let tropicalActive = false;
+
+// ============================================================
+//  TROPICAL TRACKS & CONES — NHC GeoJSON
+//  Uses NHC's official per-storm GeoJSON GIS files:
+//    cone    → nhc.noaa.gov/gis/json/{id}_5day_pgn.json
+//    track   → nhc.noaa.gov/gis/json/{id}_5day_lin.json
+//    points  → nhc.noaa.gov/gis/json/{id}_5day_pts.json
+//  Storm list from CurrentStorms.json + RSS fallback.
+//  All sources registered with their true IDs to avoid
+//  conflicts on re-toggle.
+// ============================================================
+
+// All layer/source IDs we own — kept in one place for clean teardown
+const TROP_LAYERS  = ['trop-cone-fill','trop-cone-outline','trop-track-line','trop-pts','trop-pts-current'];
+const TROP_SOURCES = ['trop-cone','trop-track','trop-pts','trop-pts-src'];
+
+function clearTropicalLayers() {
+  TROP_LAYERS.forEach(id  => { try { if (map.getLayer(id))  map.removeLayer(id);  } catch(e){} });
+  TROP_SOURCES.forEach(id => { try { if (map.getSource(id)) map.removeSource(id); } catch(e){} });
+}
+
+// ── Fetch helpers ──────────────────────────────────────────
+// Tries direct → corsproxy.io → allorigins.win in sequence
+async function nhcFetch(url) {
+  const proxies = [
+    url,                                                                         // direct (works when server has CORS headers)
+    'https://corsproxy.io/?' + encodeURIComponent(url),                          // corsproxy
+    'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),             // allorigins
+    'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(url),        // codetabs
+  ];
+  for (const u of proxies) {
+    try {
+      const r = await fetch(u, { cache: 'no-cache' });
+      if (r.ok) {
+        console.log('[Tropical] ✅ Fetched via:', u.length > 60 ? u.slice(0,60)+'…' : u);
+        return r;
+      }
+      console.warn('[Tropical] ❌ HTTP', r.status, '→', u.slice(0,70));
+    } catch(e) {
+      console.warn('[Tropical] ❌ Fetch error →', u.slice(0,70), e.message);
+    }
+  }
+  console.error('[Tropical] 🚫 All proxies failed for:', url);
+  return null;
+}
+
+// Safely parse JSON from a fetch response
+async function safeJSON(res) {
+  if (!res) return null;
+  try {
+    const text = await res.text();
+    return JSON.parse(text);
+  } catch(e) {
+    console.warn('[Tropical] JSON parse error:', e.message);
+    return null;
+  }
+}
+
+// Saffir-Simpson colour by wind speed in knots
+function stormColor(windKt) {
+  const w = parseInt(windKt) || 0;
+  if (w >= 137) return '#ff4040'; // Cat 5
+  if (w >= 113) return '#ff8c00'; // Cat 4
+  if (w >= 96)  return '#ffd700'; // Cat 3
+  if (w >= 83)  return '#ffe775'; // Cat 2
+  if (w >= 64)  return '#ffff00'; // Cat 1
+  if (w >= 34)  return '#00cfff'; // Tropical Storm
+  return '#80e0ff';               // TD / remnant low
+}
+
+function catLabel(kt, typeFallback) {
+  const w = parseInt(kt) || 0;
+  if (w >= 137) return 'CATEGORY 5 HURRICANE';
+  if (w >= 113) return 'CATEGORY 4 HURRICANE';
+  if (w >= 96)  return 'CATEGORY 3 HURRICANE';
+  if (w >= 83)  return 'CATEGORY 2 HURRICANE';
+  if (w >= 64)  return 'CATEGORY 1 HURRICANE';
+  if (w >= 34)  return 'TROPICAL STORM';
+  if (w > 0)    return 'TROPICAL DEPRESSION';
+  return (typeFallback || 'TROPICAL SYSTEM').toUpperCase();
+}
+
+// ── Main toggle ────────────────────────────────────────────
 window.toggleTropical = async function() {
   const btn = document.getElementById('tb-tropical');
+
   if (tropicalActive) {
-    ['tropical-cone-fill','tropical-cone-line','tropical-track'].forEach(id=>{
-      if(map.getLayer(id)){try{map.removeLayer(id);}catch(e){}}
-    });
-    ['tropical-cone','tropical-track'].forEach(id=>{
-      if(map.getSource(id)){try{map.removeSource(id);}catch(e){}}
-    });
+    clearTropicalLayers();
     tropicalActive = false;
     btn.classList.remove('active');
-    document.getElementById('tropical-info-card').style.display='none';
+    document.getElementById('tropical-info-card').style.display = 'none';
     return;
   }
-  showLoading('Loading Tropical Data…');
+
+  showLoading('Fetching NHC storm list…');
   btn.classList.add('active');
   tropicalActive = true;
 
-  // Use NHC RSS feeds — reliable, CORS-friendly, text/xml
-  // Active storms RSS: https://www.nhc.noaa.gov/rss_sfeedact.xml
-  // Also try the NHC GeoJSON via corsproxy as last resort
-  const stormFeatures = [];
-  const pointFeatures = [];
-  const stormMeta = [];
-
   try {
-    // Fetch NHC active storms RSS
-    const rssUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://www.nhc.noaa.gov/rss_sfeedact.xml');
-    const rssRes = await fetch(rssUrl);
-    if (rssRes.ok) {
-      const rssText = await rssRes.text();
-      const parser = new DOMParser();
-      const xml = parser.parseFromString(rssText, 'text/xml');
-      const items = Array.from(xml.querySelectorAll('item'));
+    // ── 1. Get active storm list ───────────────────────────
+    let storms = [];
 
-      for (const item of items) {
-        const title = item.querySelector('title')?.textContent || '';
-        const desc  = item.querySelector('description')?.textContent || '';
-        const link  = item.querySelector('link')?.textContent || '';
+    // Primary: CurrentStorms.json
+    // Shape: { activeStorms: [ { id:"AL052025", name:"BERYL", ... } ] }
+    const csRes  = await nhcFetch('https://www.nhc.noaa.gov/CurrentStorms.json');
+    const csData = await safeJSON(csRes);
+    console.log('[Tropical] CurrentStorms.json raw:', csData);
+    if (csData) {
+      // The array may be at activeStorms, storms, or be the root array itself
+      const arr = csData.activeStorms || csData.storms || (Array.isArray(csData) ? csData : []);
+      arr.forEach(s => {
+        // Normalise: id may be 'AL052025' or 'al052025' or 'AL05'
+        // GIS files use full 8-char lowercase id: al052025
+        let rawId = (s.id || s.stormId || s.stormid || '').toString().toLowerCase().trim();
+        // If id is short like 'al05', expand with current year
+        if (/^(al|ep|cp)\d{2}$/.test(rawId)) {
+          rawId = rawId + new Date().getFullYear();
+        }
+        if (rawId) storms.push({ ...s, _sid: rawId });
+      });
+    }
 
-        // Only process advisory items
-        if (!title.toLowerCase().includes('advisory')) continue;
-
-        // Extract storm name and type from title
-        const nameMatch = title.match(/(Tropical (?:Storm|Depression)|Hurricane|Subtropical Storm)\s+([A-Z][a-z]+)/i);
-        const stormName = nameMatch ? nameMatch[2] : title.split(' ')[0];
-        const stormType = nameMatch ? nameMatch[1] : 'Tropical System';
-
-        // Extract coordinates from description
-        const latMatch  = desc.match(/(\d+\.\d+)[°&deg;]*\s*([NS])/i);
-        const lonMatch  = desc.match(/(\d+\.\d+)[°&deg;]*\s*([EW])/i);
-        const windMatch = desc.match(/Maximum Sustained Winds[^:]*:\s*(\d+)\s*mph/i);
-        const presMatch = desc.match(/Minimum Central Pressure[^:]*:\s*(\d+)\s*mb/i);
-
-        if (!latMatch || !lonMatch) continue;
-
-        let lat = parseFloat(latMatch[1]);
-        let lon = parseFloat(lonMatch[1]);
-        if (latMatch[2].toUpperCase() === 'S') lat = -lat;
-        if (lonMatch[2].toUpperCase() === 'W') lon = -lon;
-
-        const meta = {
-          STORMNAME: stormName.toUpperCase(),
-          STORMTYPE: stormType,
-          MAXWIND: windMatch ? windMatch[1] : '—',
-          MSLP: presMatch ? presMatch[1] : '—',
-          lat, lon,
-          link
-        };
-
-        stormMeta.push(meta);
-        pointFeatures.push({
-          type: 'Feature',
-          geometry: { type: 'Point', coordinates: [lon, lat] },
-          properties: meta
+    // Supplement: RSS feed (catches storms CurrentStorms.json misses or if it failed)
+    const rssRes = await nhcFetch('https://www.nhc.noaa.gov/rss_sfeedact.xml');
+    if (rssRes) {
+      const rssText = await rssRes.text().catch(() => null);
+      if (rssText) {
+        const xml  = new DOMParser().parseFromString(rssText, 'text/xml');
+        const seen = new Set(storms.map(s => s._sid));
+        Array.from(xml.querySelectorAll('item')).forEach(item => {
+          const title = item.querySelector('title')?.textContent || '';
+          const link  = item.querySelector('link')?.textContent  || '';
+          if (!title.toLowerCase().includes('advisory')) return;
+          // Links contain storm ID: graphics_at1 → al + ?? + year, or explicit id in URL
+          // Try explicit id pattern first: al012025, ep022025
+          let idM = link.match(/((?:al|ep|cp)\d{6})/i);
+          // Fallback: graphics_at1 → basin=al, num from 'at1'
+          if (!idM) {
+            const basinM = link.match(/graphics_(at|ep|cp)(\d+)/i);
+            if (basinM) {
+              const basin = basinM[1].toLowerCase() === 'at' ? 'al' : basinM[1].toLowerCase();
+              const num   = basinM[2].padStart(2, '0');
+              idM = { 1: `${basin}${num}${new Date().getFullYear()}` };
+            }
+          }
+          const rawId = idM ? (idM[1] || idM[1]).toLowerCase() : null;
+          if (!rawId || seen.has(rawId)) return;
+          seen.add(rawId);
+          const nameM = title.match(/(Tropical (?:Storm|Depression)|Hurricane|Subtropical Storm|Post-Tropical Cyclone)\s+([A-Za-z]+)/i);
+          console.log('[Tropical] RSS storm found:', rawId, title.slice(0, 60));
+          storms.push({
+            _sid:           rawId,
+            id:             rawId,
+            name:           nameM ? nameM[2].toUpperCase() : rawId.toUpperCase(),
+            classification: nameM ? nameM[1] : 'Tropical System',
+          });
         });
       }
     }
-  } catch(e) { console.warn('NHC RSS error:', e); }
 
-  // If RSS failed or no storms, try NHC GeoJSON via proxy
-  if (!pointFeatures.length) {
-    const nhcUrls = [
-      'https://corsproxy.io/?' + encodeURIComponent('https://www.nhc.noaa.gov/gis/json/al_latest_public.json'),
-      'https://corsproxy.io/?' + encodeURIComponent('https://www.nhc.noaa.gov/gis/json/ep_latest_public.json'),
-    ];
-    for (const url of nhcUrls) {
-      try {
-        const r = await fetch(url);
-        if (!r.ok) continue;
-        const gj = await r.json();
-        (gj.features || []).forEach(f => {
-          const t = f.geometry?.type || '';
-          if (t === 'Polygon' || t === 'MultiPolygon') stormFeatures.push(f);
-          else if (t === 'Point') { pointFeatures.push(f); stormMeta.push(f.properties || {}); }
+    console.log('[Tropical] Storm list:', storms.map(s => s._sid + ' / ' + (s.name||'?')));
+
+    if (!storms.length) {
+      hideLoading();
+      showLoading('No active tropical cyclones at this time.');
+      setTimeout(hideLoading, 3500);
+      btn.classList.remove('active');
+      tropicalActive = false;
+      return;
+    }
+
+    // ── 2. Fetch GeoJSON for each storm ───────────────────
+    showLoading(`Loading GeoJSON for ${storms.length} storm(s)…`);
+
+    const allCone   = [];
+    const allLine   = [];
+    const allPts    = [];
+    const metaList  = [];
+
+    for (const storm of storms) {
+      const sid = storm._sid || (storm.id || '').toLowerCase().replace(/\s+/g, '');
+      if (!sid) { console.warn('[Tropical] Skipping storm with no id:', storm); continue; }
+
+      console.log('[Tropical] Fetching GeoJSON for storm:', sid);
+      const base = `https://www.nhc.noaa.gov/gis/json/${sid}`;
+
+      // --- Cone of uncertainty polygon ---
+      let coneFeatures = [];
+      const coneData = await safeJSON(await nhcFetch(`${base}_5day_pgn.json`));
+      console.log('[Tropical] Cone data for', sid, ':', coneData ? `${(coneData.features||[coneData]).length} features` : 'NULL');
+      if (coneData) {
+        (coneData.features || (coneData.type === 'Feature' ? [coneData] : []))
+          .filter(f => f?.geometry)
+          .forEach(f => { coneFeatures.push(f); allCone.push(f); });
+      }
+
+      // --- Forecast track line ---
+      const lineData = await safeJSON(await nhcFetch(`${base}_5day_lin.json`));
+      console.log('[Tropical] Line data for', sid, ':', lineData ? `${(lineData.features||[lineData]).length} features` : 'NULL');
+      if (lineData) {
+        (lineData.features || (lineData.type === 'Feature' ? [lineData] : []))
+          .filter(f => f?.geometry)
+          .forEach(f => allLine.push(f));
+      }
+
+      // --- Forecast track points ---
+      let ptFeatures = [];
+      const ptData = await safeJSON(await nhcFetch(`${base}_5day_pts.json`));
+      console.log('[Tropical] Points data for', sid, ':', ptData ? `${(ptData.features||[ptData]).length} features` : 'NULL');
+      if (ptData) {
+        ptFeatures = (ptData.features || (ptData.type === 'Feature' ? [ptData] : []))
+          .filter(f => f?.geometry);
+        ptFeatures.forEach(f => {
+          const w = f.properties?.MAXWIND || f.properties?.VMAX || 0;
+          f.properties = { ...(f.properties || {}), _color: stormColor(w), _stormId: sid };
+          allPts.push(f);
         });
-      } catch(e) {}
-    }
-  }
+      }
 
-  if (!pointFeatures.length && !stormFeatures.length) {
+      // Build meta from best available data
+      const currentPt = ptFeatures.find(f =>
+        f.properties?.TCDVLP === 'CURRENT' ||
+        f.properties?.TAU === '0' ||
+        f.properties?.DATELBL?.includes('Current')
+      ) || ptFeatures[0];
+      const pp = currentPt?.properties || {};
+
+      const windKt  = storm.intensity || pp.MAXWIND || pp.VMAX || '—';
+      const windMph = windKt !== '—' ? Math.round(parseInt(windKt) * 1.15078) : '—';
+      const lat     = storm.lat  || pp.LAT  || currentPt?.geometry?.coordinates?.[1] || null;
+      const lon     = storm.lon  || pp.LON  || currentPt?.geometry?.coordinates?.[0] || null;
+
+      metaList.push({
+        id:     sid,
+        name:   storm.name || pp.STORMNAME || sid.toUpperCase(),
+        type:   storm.classification || pp.STORMTYPE || pp.DEVEL || 'Tropical System',
+        windKt,
+        windMph,
+        mslp:   storm.pressure || pp.MSLP || pp.MINRH || '—',
+        motion: pp.MOTION_DIR
+                  ? `${pp.MOTION_DIR}° at ${pp.MOTION_SPD || '?'} kt`
+                  : storm.movement || '—',
+        lat,
+        lon,
+      });
+    }
+
+    console.log('[Tropical] Totals → cone:', allCone.length, 'line:', allLine.length, 'pts:', allPts.length);
+
+    // If GeoJSON completely failed (e.g. off-season / CORS blocked), build
+    // minimal point features from the CurrentStorms metadata so the map
+    // at least shows storm positions.
+    if (!allCone.length && !allLine.length && !allPts.length) {
+      console.warn('[Tropical] No GeoJSON loaded — falling back to metadata markers');
+      metaList.forEach(m => {
+        if (m.lat == null || m.lon == null) return;
+        allPts.push({
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: [m.lon, m.lat] },
+          properties: {
+            STORMNAME: m.name,
+            STORMTYPE: m.type,
+            MAXWIND:   m.windKt,
+            MSLP:      m.mslp,
+            TAU:       '0',
+            TCDVLP:    'CURRENT',
+            _color:    stormColor(m.windKt),
+            _stormId:  m.id,
+          }
+        });
+      });
+    }
+
+    // ── 3. Render on map ──────────────────────────────────
+    clearTropicalLayers(); // clean slate before adding
+
+    // Helper: insert layer below first symbol layer so labels stay on top
+    const symLayer = (map.getStyle()?.layers || []).find(l => l.type === 'symbol')?.id;
+
+    // Cone of uncertainty
+    if (allCone.length) {
+      const gj = { type: 'FeatureCollection', features: allCone };
+      map.addSource('trop-cone', { type: 'geojson', data: gj });
+      map.addLayer({
+        id: 'trop-cone-fill', type: 'fill', source: 'trop-cone',
+        paint: { 'fill-color': '#bb44ff', 'fill-opacity': 0.15 }
+      }, symLayer);
+      map.addLayer({
+        id: 'trop-cone-outline', type: 'line', source: 'trop-cone',
+        paint: { 'line-color': '#cc55ff', 'line-width': 1.5, 'line-dasharray': [4, 3] }
+      }, symLayer);
+      map.on('click', 'trop-cone-fill', e => {
+        const sid = e.features?.[0]?.properties?._stormId ||
+                    e.features?.[0]?.properties?.STORMID?.toLowerCase();
+        const meta = metaList.find(m => m.id === sid) || metaList[0];
+        if (meta) showTropicalInfo(meta);
+      });
+      map.on('mouseenter', 'trop-cone-fill', () => map.getCanvas().style.cursor = 'pointer');
+      map.on('mouseleave', 'trop-cone-fill', () => map.getCanvas().style.cursor = '');
+    }
+
+    // Forecast track line
+    if (allLine.length) {
+      const gj = { type: 'FeatureCollection', features: allLine };
+      map.addSource('trop-track', { type: 'geojson', data: gj });
+      map.addLayer({
+        id: 'trop-track-line', type: 'line', source: 'trop-track',
+        paint: { 'line-color': '#ff88ff', 'line-width': 2 }
+      }, symLayer);
+    }
+
+    // Forecast track points (intensity-coloured circles)
+    if (allPts.length) {
+      const gj = { type: 'FeatureCollection', features: allPts };
+      map.addSource('trop-pts-src', { type: 'geojson', data: gj });
+      map.addLayer({
+        id: 'trop-pts', type: 'circle', source: 'trop-pts-src',
+        filter: ['!=', ['get', 'TAU'], '0'],   // non-current forecast points
+        paint: {
+          'circle-radius':       ['interpolate', ['linear'], ['zoom'], 3, 4, 8, 8],
+          'circle-color':        ['get', '_color'],
+          'circle-stroke-width': 1.5,
+          'circle-stroke-color': '#fff',
+          'circle-opacity':      0.85,
+        }
+      });
+      // Current position — larger, white-outlined
+      map.addLayer({
+        id: 'trop-pts-current', type: 'circle', source: 'trop-pts-src',
+        filter: ['any',
+          ['==', ['get', 'TAU'],    '0'],
+          ['==', ['get', 'TCDVLP'], 'CURRENT'],
+        ],
+        paint: {
+          'circle-radius':       ['interpolate', ['linear'], ['zoom'], 3, 7, 8, 14],
+          'circle-color':        ['get', '_color'],
+          'circle-stroke-width': 2.5,
+          'circle-stroke-color': '#fff',
+          'circle-opacity':      1,
+        }
+      });
+
+      const ptClick = e => {
+        const p   = e.features?.[0]?.properties;
+        if (!p) return;
+        const sid = p._stormId || (p.STORMID || '').toLowerCase();
+        const base = metaList.find(m => m.id === sid);
+        // Build point-specific info (may differ from base storm summary)
+        const windKt  = p.MAXWIND || p.VMAX || base?.windKt || '—';
+        const windMph = windKt !== '—' ? Math.round(parseInt(windKt) * 1.15078) : '—';
+        showTropicalInfo({
+          name:   p.STORMNAME || base?.name || sid.toUpperCase(),
+          type:   p.STORMTYPE || p.DEVEL    || base?.type || '—',
+          windKt, windMph,
+          mslp:   p.MSLP  || p.MINRH || base?.mslp   || '—',
+          motion: p.MOTION_DIR ? `${p.MOTION_DIR}° at ${p.MOTION_SPD||'?'} kt` : base?.motion || '—',
+          lat:    e.lngLat.lat,
+          lon:    e.lngLat.lng,
+          tau:    p.TAU || p.DATELBL || '',
+        });
+      };
+      map.on('click',      'trop-pts',         ptClick);
+      map.on('click',      'trop-pts-current', ptClick);
+      map.on('mouseenter', 'trop-pts',         () => map.getCanvas().style.cursor = 'pointer');
+      map.on('mouseleave', 'trop-pts',         () => map.getCanvas().style.cursor = '');
+      map.on('mouseenter', 'trop-pts-current', () => map.getCanvas().style.cursor = 'pointer');
+      map.on('mouseleave', 'trop-pts-current', () => map.getCanvas().style.cursor = '');
+    }
+
+    // Fly to first storm and open its info card
+    if (metaList.length) {
+      const m = metaList[0];
+      showTropicalInfo(m);
+      if (m.lon != null && m.lat != null) {
+        map.flyTo({ center: [m.lon, m.lat], zoom: 5, duration: 2000 });
+      }
+    }
+
     hideLoading();
-    // Just show a brief loading message — don't open the card unprompted
-    showLoading('No active tropical cyclones at this time.');
-    setTimeout(hideLoading, 3000);
-    // Turn off the button since there's nothing to show
-    document.getElementById('tb-tropical').classList.remove('active');
+
+  } catch (err) {
+    console.error('[Tropical]', err);
+    hideLoading();
+    showLoading('Tropical data error — see console.');
+    setTimeout(hideLoading, 4000);
+    btn.classList.remove('active');
     tropicalActive = false;
-    return;
   }
-
-  // Add cone polygons if any
-  if (stormFeatures.length) {
-    const coneGJ = { type:'FeatureCollection', features: stormFeatures };
-    if (map.getSource('tropical-cone')) { map.getSource('tropical-cone').setData(coneGJ); }
-    else {
-      map.addSource('tropical-cone', { type:'geojson', data: coneGJ });
-      const sym = (map.getStyle().layers||[]).find(l=>l.type==='symbol');
-      map.addLayer({ id:'tropical-cone-fill', type:'fill', source:'tropical-cone', paint:{'fill-color':'#bb44ff','fill-opacity':0.2} }, sym?.id);
-      map.addLayer({ id:'tropical-cone-line', type:'line', source:'tropical-cone', paint:{'line-color':'#cc55ff','line-width':2} }, sym?.id);
-      map.on('click','tropical-cone-fill', e => { if(e.features?.[0]) showTropicalInfo(e.features[0].properties); });
-    }
-  }
-
-  // Add storm position points
-  const trackGJ = { type:'FeatureCollection', features: pointFeatures };
-  if (map.getSource('tropical-track')) { map.getSource('tropical-track').setData(trackGJ); }
-  else {
-    map.addSource('tropical-track', { type:'geojson', data: trackGJ });
-    map.addLayer({ id:'tropical-track', type:'circle', source:'tropical-track',
-      paint:{'circle-radius':10,'circle-color':'#ff44ff','circle-stroke-width':2,'circle-stroke-color':'#fff','circle-opacity':0.9}
-    });
-    map.on('click','tropical-track', e => { if(e.features?.[0]) showTropicalInfo(e.features[0].properties); });
-    map.on('mouseenter','tropical-track',()=>map.getCanvas().style.cursor='pointer');
-    map.on('mouseleave','tropical-track',()=>map.getCanvas().style.cursor='');
-  }
-
-  // Fly to first storm
-  if (stormMeta.length) {
-    showTropicalInfo(stormMeta[0]);
-    if (stormMeta[0].lon && stormMeta[0].lat) {
-      map.flyTo({ center: [stormMeta[0].lon, stormMeta[0].lat], zoom: 5, duration: 2000 });
-    }
-  }
-  hideLoading();
 };
 
+// ── Info card ──────────────────────────────────────────────
+function showTropicalInfo(meta) {
+  const name    = (meta.name   || '—').toUpperCase();
+  const windKt  = meta.windKt  || '—';
+  const windMph = meta.windMph || (windKt !== '—' ? Math.round(parseInt(windKt) * 1.15078) : '—');
+  const mslp    = meta.mslp    || '—';
+  const motion  = meta.motion  || '—';
+  const lat     = meta.lat  != null ? parseFloat(meta.lat).toFixed(1) : null;
+  const lon     = meta.lon  != null ? parseFloat(meta.lon).toFixed(1) : null;
+  const tau     = meta.tau  || '';
 
-function showTropicalInfo(props) {
-  const name = props.STORMNAME || props.TCNAME || props.stormName || props.name || '—';
-  const type = props.STORMTYPE || props.TYPE || props.intensity || '—';
-  const wind = props.MAXWIND || props.VMAX || props.maxwind || '—';
-  const pressure = props.MSLP || props.MINRH || props.mslp || '—';
-  const motion = props.MOTION || props.motion || '—';
-  const lat = props.LAT || props.lat || '';
-  const lon = props.LON || props.lon || '';
+  const color   = stormColor(windKt);
+  const cat     = catLabel(windKt, meta.type);
 
-  document.getElementById('tropical-info-title').textContent = name.toUpperCase() || 'TROPICAL SYSTEM';
+  let posHTML = '';
+  if (lat && lon) {
+    const latDir = parseFloat(lat) >= 0 ? 'N' : 'S';
+    const lonDir = parseFloat(lon) <= 0 ? 'W' : 'E';
+    posHTML = `<div class="tropical-stat-row">
+      <span class="tropical-stat-label">POSITION</span>
+      <span class="tropical-stat-value">${Math.abs(lat)}°${latDir} &nbsp; ${Math.abs(parseFloat(lon)).toFixed(1)}°${lonDir}</span>
+    </div>`;
+  }
+
+  const tauHTML = tau ? `<div class="tropical-stat-row">
+    <span class="tropical-stat-label">VALID</span>
+    <span class="tropical-stat-value" style="font-size:12px;">${tau}</span>
+  </div>` : '';
+
+  document.getElementById('tropical-info-title').textContent = name;
   document.getElementById('tropical-info-body').innerHTML = `
-    <div class="tropical-stat-row"><span class="tropical-stat-label">TYPE</span><span class="tropical-stat-value">${type}</span></div>
-    <div class="tropical-stat-row"><span class="tropical-stat-label">MAX WIND</span><span class="tropical-stat-value">${wind} KT</span></div>
-    <div class="tropical-stat-row"><span class="tropical-stat-label">PRESSURE</span><span class="tropical-stat-value">${pressure} MB</span></div>
-    <div class="tropical-stat-row"><span class="tropical-stat-label">MOTION</span><span class="tropical-stat-value">${motion}</span></div>
-    ${lat&&lon?`<div class="tropical-stat-row"><span class="tropical-stat-label">POSITION</span><span class="tropical-stat-value">${lat}° ${lon}°</span></div>`:''}
-    <div style="padding:8px 14px 10px;font-size:10px;color:rgba(180,100,255,0.5);letter-spacing:1px;">SOURCE: NHC</div>
+    <div class="tropical-stat-row">
+      <span class="tropical-stat-label">CLASS</span>
+      <span class="tropical-stat-value" style="color:${color}">${cat}</span>
+    </div>
+    <div class="tropical-stat-row">
+      <span class="tropical-stat-label">MAX WIND</span>
+      <span class="tropical-stat-value">
+        ${windKt} KT &nbsp;<span style="color:rgba(255,255,255,0.4);font-size:11px;">(${windMph} MPH)</span>
+      </span>
+    </div>
+    <div class="tropical-stat-row">
+      <span class="tropical-stat-label">PRESSURE</span>
+      <span class="tropical-stat-value">${mslp} MB</span>
+    </div>
+    <div class="tropical-stat-row">
+      <span class="tropical-stat-label">MOTION</span>
+      <span class="tropical-stat-value">${motion}</span>
+    </div>
+    ${posHTML}
+    ${tauHTML}
+    <div style="padding:8px 14px 10px;font-size:10px;color:rgba(180,100,255,0.45);letter-spacing:1px;">
+      SOURCE: NHC / NOAA &nbsp;·&nbsp; CLICK ANY TRACK POINT FOR FORECAST DETAILS
+    </div>
   `;
-  document.getElementById('tropical-info-card').style.display='block';
+  document.getElementById('tropical-info-card').style.display = 'block';
 }
 
-document.getElementById('tropical-info-close').addEventListener('click', ()=>{
-  document.getElementById('tropical-info-card').style.display='none';
+document.getElementById('tropical-info-close').addEventListener('click', () => {
+  document.getElementById('tropical-info-card').style.display = 'none';
 });
 
 // ============================================================
@@ -8342,4 +9165,647 @@ window.flyToAlertWithFlash = function(feature) {
   });
 
 })(); // end Cooper Watch IIFE
+
+// ═══════════════════════════════════════════════════════════
+// STORM SPOTTER LOCATION SHARING — receives pins from main site
+// ═══════════════════════════════════════════════════════════
+(function() {
+  const CHANNEL_KEY = 'stormspotter_locations';
+  const spotterMarkers = {}; // id → { marker, el, timeout }
+
+  // Pulse animation style
+  const style = document.createElement('style');
+  style.textContent = `
+    .spotter-pin { cursor: pointer; position: relative; }
+    .spotter-dot {
+      width: 14px; height: 14px; border-radius: 50%;
+      background: #00e5ff; border: 2px solid #fff;
+      box-shadow: 0 0 0 0 rgba(0,229,255,0.7);
+      animation: spotter-pulse 2s ease-in-out infinite;
+      position: relative; z-index: 1;
+    }
+    .spotter-dot.priority { background: #ff3c00; box-shadow: 0 0 0 0 rgba(255,60,0,0.7); animation: spotter-pulse-red 2s ease-in-out infinite; }
+    @keyframes spotter-pulse { 0%,100%{box-shadow:0 0 0 0 rgba(0,229,255,0.7);} 50%{box-shadow:0 0 0 10px rgba(0,229,255,0);} }
+    @keyframes spotter-pulse-red { 0%,100%{box-shadow:0 0 0 0 rgba(255,60,0,0.7);} 50%{box-shadow:0 0 0 10px rgba(255,60,0,0);} }
+    .spotter-label {
+      position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.85); color: #00e5ff;
+      font-family: 'Bebas Neue', Arial, sans-serif;
+      font-size: 11px; letter-spacing: 1px;
+      padding: 2px 6px; border-radius: 3px;
+      white-space: nowrap; pointer-events: none;
+      border: 1px solid rgba(0,229,255,0.4);
+    }
+    .spotter-label.priority { color: #ff6644; border-color: rgba(255,60,0,0.4); }
+    #spotter-panel {
+      position: fixed; bottom: 80px; left: 10px;
+      background: rgba(0,0,0,0.88); border: 1px solid rgba(0,229,255,0.35);
+      border-radius: 8px; padding: 10px 14px;
+      font-family: 'Bebas Neue', Arial, sans-serif;
+      z-index: 3000; min-width: 180px; max-width: 260px;
+      display: none;
+    }
+    #spotter-panel.has-spotters { display: block; }
+    #spotter-count-label { font-size: 11px; letter-spacing: 2px; color: rgba(0,229,255,0.5); margin-bottom: 4px; }
+    #spotter-list { display: flex; flex-direction: column; gap: 3px; max-height: 180px; overflow-y: auto; }
+    .spotter-entry { display: flex; align-items: center; gap: 6px; padding: 3px 0; cursor: pointer; }
+    .spotter-entry:hover .spotter-entry-name { color: #fff; }
+    .spotter-entry-dot { width: 8px; height: 8px; border-radius: 50%; background: #00e5ff; flex-shrink: 0; }
+    .spotter-entry-dot.priority { background: #ff3c00; }
+    .spotter-entry-name { font-size: 12px; letter-spacing: 1px; color: rgba(0,229,255,0.8); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .spotter-entry-time { font-size: 10px; color: rgba(255,255,255,0.3); }
+  `;
+  document.head.appendChild(style);
+
+  // Panel HTML
+  const panel = document.createElement('div');
+  panel.id = 'spotter-panel';
+  panel.innerHTML = `
+    <div id="spotter-count-label">● ACTIVE SPOTTERS</div>
+    <div id="spotter-list"></div>
+  `;
+  document.body.appendChild(panel);
+
+  function formatAge(ts) {
+    const s = Math.floor((Date.now() - ts) / 1000);
+    if (s < 60) return s + 's ago';
+    return Math.floor(s/60) + 'm ago';
+  }
+
+  function waitForMap(cb) {
+    const check = setInterval(() => {
+      if (window.map && window.map.loaded && window.map.loaded()) { clearInterval(check); cb(); }
+    }, 500);
+  }
+
+  function addOrUpdateSpotter(data) {
+    const { id, name, lat, lng, note, priority, timestamp } = data;
+    const existing = spotterMarkers[id];
+
+    if (existing) {
+      clearTimeout(existing.timeout);
+      existing.marker.setLngLat([lng, lat]);
+      existing.el.querySelector('.spotter-label').textContent = name;
+    } else {
+      waitForMap(() => {
+        const el = document.createElement('div');
+        el.className = 'spotter-pin';
+        el.innerHTML = `
+          <div class="spotter-dot${priority ? ' priority' : ''}"></div>
+          <div class="spotter-label${priority ? ' priority' : ''}">${name}</div>
+        `;
+        el.title = note || name;
+
+        el.addEventListener('click', () => {
+          showSpotterPopup(data);
+        });
+
+        const marker = new maptilersdk.Marker({ element: el })
+          .setLngLat([lng, lat])
+          .addTo(window.map);
+
+        spotterMarkers[id] = { marker, el, data, timeout: null };
+      });
+    }
+
+    // Auto-expire after 10 min of no update
+    if (spotterMarkers[id]) {
+      spotterMarkers[id].data = data;
+      spotterMarkers[id].timeout = setTimeout(() => removeSpotter(id), 10 * 60 * 1000);
+    }
+    refreshPanel();
+  }
+
+  function removeSpotter(id) {
+    const s = spotterMarkers[id];
+    if (!s) return;
+    clearTimeout(s.timeout);
+    s.marker.remove();
+    delete spotterMarkers[id];
+    refreshPanel();
+  }
+
+  function showSpotterPopup(data) {
+    if (!window.map) return;
+    const popup = new maptilersdk.Popup({ closeOnClick: true, className: 'spotter-popup' })
+      .setLngLat([data.lng, data.lat])
+      .setHTML(`
+        <div style="font-family:'Bebas Neue',Arial,sans-serif;color:#00e5ff;font-size:13px;letter-spacing:1px;min-width:140px;">
+          <div style="font-size:16px;color:#fff;">${data.name}</div>
+          ${data.note ? `<div style="color:rgba(255,255,255,0.7);font-size:11px;margin-top:4px;">${data.note}</div>` : ''}
+          <div style="color:rgba(0,229,255,0.5);font-size:10px;margin-top:6px;">
+            ${data.lat.toFixed(4)}, ${data.lng.toFixed(4)}<br>
+            Shared ${formatAge(data.timestamp)}
+          </div>
+        </div>
+      `)
+      .addTo(window.map);
+  }
+
+  function refreshPanel() {
+    const ids = Object.keys(spotterMarkers);
+    if (ids.length === 0) { panel.classList.remove('has-spotters'); return; }
+    panel.classList.add('has-spotters');
+    const list = document.getElementById('spotter-list');
+    list.innerHTML = ids.map(id => {
+      const d = spotterMarkers[id].data;
+      return `<div class="spotter-entry" onclick="window._zoomToSpotter('${id}')">
+        <div class="spotter-entry-dot${d.priority ? ' priority' : ''}"></div>
+        <div class="spotter-entry-name">${d.name}</div>
+        <div class="spotter-entry-time">${formatAge(d.timestamp)}</div>
+      </div>`;
+    }).join('');
+  }
+
+  window._zoomToSpotter = function(id) {
+    const s = spotterMarkers[id];
+    if (!s || !window.map) return;
+    window.map.flyTo({ center: [s.data.lng, s.data.lat], zoom: 10, duration: 1000 });
+  };
+
+  // Listen for localStorage updates (cross-tab) and BroadcastChannel
+  window.addEventListener('storage', function(e) {
+    if (e.key !== CHANNEL_KEY) return;
+    try {
+      const locations = JSON.parse(e.newValue || '[]');
+      locations.forEach(addOrUpdateSpotter);
+    } catch(err) {}
+  });
+
+  // Also poll localStorage every 5s (for same-tab use during dev)
+  setInterval(function() {
+    try {
+      const raw = localStorage.getItem(CHANNEL_KEY);
+      if (!raw) return;
+      const locations = JSON.parse(raw);
+      locations.forEach(addOrUpdateSpotter);
+    } catch(err) {}
+  }, 5000);
+
+  // BroadcastChannel for same-origin cross-tab real-time
+  try {
+    const bc = new BroadcastChannel('stormspotter_channel');
+    bc.onmessage = function(e) {
+      if (e.data && e.data.type === 'location') addOrUpdateSpotter(e.data.payload);
+    };
+    window._spotterBC = bc;
+  } catch(e) {}
+
+  // Global API for main site to call directly
+  window.STORMSPOTTER = {
+    addLocation: function(data) { addOrUpdateSpotter(data); },
+    removeLocation: function(id) { removeSpotter(id); },
+    getActive: function() { return Object.keys(spotterMarkers).map(id => spotterMarkers[id].data); }
+  };
+
+  // ── Toggle button wired to enable/disable spotter layer ───
+  let sharedLocationsOn = false;
+
+  window.toggleSharedLocations = function() {
+    const btn = document.getElementById('tb-shared-locations');
+    sharedLocationsOn = !sharedLocationsOn;
+
+    if (sharedLocationsOn) {
+      btn.classList.add('active');
+      btn.style.background = 'rgba(0,212,245,0.25)';
+      btn.style.borderColor = '#00d4f5';
+      btn.style.color = '#00d4f5';
+      btn.innerHTML = '<span class="btn-icon">\u{1F4CD}</span>SHARED LOCATIONS <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#00d4f5;margin-left:5px;animation:spotter-pulse 2s ease-in-out infinite;vertical-align:middle;"></span>';
+      panel.classList.add('has-spotters');
+      try {
+        const raw = localStorage.getItem('stormspotter_locations');
+        if (raw) JSON.parse(raw).forEach(addOrUpdateSpotter);
+      } catch(e) {}
+      showToast('\u{1F4CD} Shared Locations ON');
+    } else {
+      btn.classList.remove('active');
+      btn.style.background = 'rgba(0,212,245,0.12)';
+      btn.style.borderColor = 'rgba(0,212,245,0.35)';
+      btn.style.color = '#00d4f5';
+      btn.innerHTML = '<span class="btn-icon">\u{1F4CD}</span>SHARED LOCATIONS';
+      Object.values(spotterMarkers).forEach(s => {
+        try { s.marker.getElement().style.display = 'none'; } catch(e) {}
+      });
+      panel.classList.remove('has-spotters');
+      showToast('\u{1F4CD} Shared Locations OFF');
+    }
+  };
+
+  function showToast(msg) {
+    let t = document.getElementById('spotter-toast');
+    if (!t) {
+      t = document.createElement('div');
+      t.id = 'spotter-toast';
+      t.style.cssText = 'position:fixed;bottom:130px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.88);color:#00d4f5;font-family:"Bebas Neue",Arial,sans-serif;font-size:13px;letter-spacing:1.5px;padding:9px 18px;border-radius:6px;border:1px solid rgba(0,212,245,0.35);z-index:9999;pointer-events:none;transition:opacity 0.4s;';
+      document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.style.opacity = '1';
+    clearTimeout(t._to);
+    t._to = setTimeout(() => { t.style.opacity = '0'; }, 2800);
+  }
+
+  // ── postMessage listener — receives from parent page / index.html ──
+  window.addEventListener('message', function(e) {
+    if (!e.data) return;
+    if (e.data.type === 'spotter_location' && e.data.payload) {
+      // Auto-enable shared locations layer when a transmission arrives
+      if (!sharedLocationsOn) {
+        sharedLocationsOn = true;
+        const btn = document.getElementById('tb-shared-locations');
+        if (btn) {
+          btn.classList.add('active');
+          btn.style.background = 'rgba(0,212,245,0.25)';
+          btn.style.borderColor = '#00d4f5';
+          btn.style.color = '#00d4f5';
+          btn.innerHTML = '<span class="btn-icon">\uD83D\uDCCD</span>SHARED LOCATIONS <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#00d4f5;margin-left:5px;animation:spotter-pulse 2s ease-in-out infinite;vertical-align:middle;"></span>';
+        }
+        showToast('\uD83D\uDCCD Spotter location received — Shared Locations ON');
+      }
+      addOrUpdateSpotter(e.data.payload);
+    }
+    if (e.data.type === 'spotter_remove' && e.data.id) {
+      removeSpotter(e.data.id);
+    }
+    // Acknowledge so parent knows iframe is ready
+    if (e.data.type === 'spotter_ping') {
+      try { e.source.postMessage({ type: 'spotter_pong' }, '*'); } catch(_) {}
+    }
+  });
+
+  console.log('[StormSpotter] Location sharing receiver ready — postMessage listener active.');
+})();
+
+
+// ================================================================
+//  TOWER CAMS — full implementation
+//  API: https://scriptkitty.cafe/relay/atmosx/cameras
+// ================================================================
+(function() {
+  const CAM_API    = 'https://scriptkitty.cafe/relay/atmosx/cameras';
+  let allCameras   = [];   // raw from API
+  let filteredCams = [];   // after search
+  let activeCams   = new Set();   // cam IDs currently in the strip
+  let camMarkers   = {};   // id → maptiler marker
+  let camTimers    = {};   // id → { start, interval, el }
+  let towerCamOn   = false;
+
+  // ── Toggle entry point ─────────────────────────────────────
+  window.toggleTowerCams = async function() {
+    const btn = document.getElementById('tb-tower-cams');
+    if (towerCamOn) {
+      hideTowerCams();
+      btn.classList.remove('active');
+      towerCamOn = false;
+      return;
+    }
+    btn.classList.add('active');
+    towerCamOn = true;
+    await fetchCameras();
+    showTowerCams();
+  };
+
+  // ── Show/Hide ──────────────────────────────────────────────
+  function applyMapLayout() {
+    const mapEl = document.getElementById('map');
+    if (!mapEl) return;
+    mapEl.style.cssText += ';left:310px!important;right:300px!important;top:110px!important;bottom:0!important;width:auto!important;height:auto!important;';
+    mapEl.style.left   = '310px';
+    mapEl.style.right  = '300px';
+    mapEl.style.top    = '110px';
+    mapEl.style.bottom = '0';
+    mapEl.style.width  = 'auto';
+    mapEl.style.height = 'auto';
+  }
+
+  function resetMapLayout() {
+    const mapEl = document.getElementById('map');
+    if (!mapEl) return;
+    mapEl.style.left   = '';
+    mapEl.style.right  = '';
+    mapEl.style.top    = '';
+    mapEl.style.bottom = '';
+    mapEl.style.width  = '';
+    mapEl.style.height = '';
+  }
+
+  function showTowerCams() {
+    document.body.classList.add('cam-mode');
+    applyMapLayout();
+    setTimeout(() => { if (window.map && map.resize) map.resize(); }, 150);
+  }
+
+  function hideTowerCams() {
+    document.body.classList.remove('cam-mode');
+    resetMapLayout();
+    document.getElementById('cam-strip').innerHTML = '';
+    activeCams.clear();
+    Object.values(camMarkers).forEach(m => { try { m.remove(); } catch(e) {} });
+    camMarkers = {};
+    setTimeout(() => { if (window.map && map.resize) map.resize(); }, 150);
+  }
+
+  window.camHideTowerCams = function() {
+    hideTowerCams();
+    document.getElementById('tb-tower-cams').classList.remove('active');
+    towerCamOn = false;
+  };
+
+  window.camShowRadar = function() {
+    // Just toggle radar layer on
+    if (window.toggleDropdown) toggleDropdown('dd-radar');
+  };
+
+  // ── Fetch cameras from API ─────────────────────────────────
+  async function fetchCameras() {
+    const listEl = document.getElementById('cam-list');
+    listEl.innerHTML = '<div style="font-family:var(--ff,Arial),Arial,sans-serif;font-size:11px;letter-spacing:2px;color:rgba(255,255,255,0.25);padding:12px 14px;">LOADING CAMERAS…</div>';
+
+    try {
+      const res  = await fetch(CAM_API, { cache: 'no-cache' });
+      const data = await res.json();
+
+      // API may return an array or { cameras: [...] } or { data: [...] }
+      allCameras = Array.isArray(data) ? data
+                 : data.cameras || data.data || data.feeds || data.items || [];
+
+      console.log('[TowerCams] Loaded', allCameras.length, 'cameras');
+      filteredCams = [...allCameras];
+      renderCamList(filteredCams);
+      renderCamPreviews(filteredCams.slice(0, 10));
+      renderCamMarkersOnMap(allCameras);
+    } catch(e) {
+      console.error('[TowerCams] API error:', e);
+      listEl.innerHTML = `<div style="font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:rgba(255,80,80,0.7);padding:12px 14px;">
+        ⚠ FAILED TO LOAD<br>
+        <span style="font-size:10px;color:rgba(255,255,255,0.25);">${e.message}</span>
+      </div>`;
+    }
+  }
+
+  // ── Helper: get normalized camera fields ──────────────────
+  function camName(c)     { return c.name || c.title || c.label || c.id || 'Camera'; }
+  function camLocation(c) { return c.location || c.city || c.place || c.address || c.state || ''; }
+  function camLat(c)      { return c.lat || c.latitude  || c.coords?.lat  || null; }
+  function camLon(c)      { return c.lon || c.longitude || c.lng || c.coords?.lon || c.coords?.lng || null; }
+  function camThumb(c)    { return c.thumbnail || c.thumb || c.snapshot || c.image || c.preview || null; }
+  function camStream(c)   { return c.stream || c.hls || c.url || c.feed || c.src || null; }
+  function camYoutube(c)  { return c.youtube || c.yt || c.youtube_id || null; }
+  function camInUse(c)    { return !!(c.in_use || c.inuse || c.active || c.live); }
+
+  // ── Render left sidebar list ───────────────────────────────
+  function renderCamList(cams) {
+    const listEl = document.getElementById('cam-list');
+    if (!cams.length) {
+      listEl.innerHTML = '<div style="font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:rgba(255,255,255,0.25);padding:12px 14px;">NO CAMERAS FOUND</div>';
+      return;
+    }
+    listEl.innerHTML = cams.map((c, i) => {
+      const inuse = camInUse(c);
+      return `<div class="cam-item${activeCams.has(c.id||i) ? ' selected' : ''}"
+                   onclick="camItemClick(${i})" data-idx="${i}">
+        <div class="cam-item-info">
+          <div class="cam-item-name">${camName(c)}</div>
+          <div class="cam-item-loc">${camLocation(c)}</div>
+        </div>
+        ${inuse ? '<span class="cam-badge inuse">IN USE</span>' : ''}
+      </div>`;
+    }).join('');
+  }
+
+  // ── Render right panel previews ────────────────────────────
+  function renderCamPreviews(cams) {
+    const el = document.getElementById('cam-previews');
+    el.innerHTML = cams.map((c, i) => {
+      const thumb  = camThumb(c);
+      const stream = camStream(c);
+      const yt     = camYoutube(c);
+      return `<div class="cam-preview-item" onclick="camPreviewClick(${allCameras.indexOf(c)})">
+        ${thumb
+          ? `<img class="cam-preview-thumb" src="${thumb}" alt="${camName(c)}" onerror="this.style.display='none'">`
+          : `<div class="cam-preview-thumb" style="display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.15);font-family:'Bebas Neue',Arial,sans-serif;font-size:11px;letter-spacing:1px;">NO PREVIEW</div>`
+        }
+        <div class="cam-preview-name">${camName(c)}</div>
+        <div class="cam-preview-loc">${camLocation(c)}</div>
+        ${stream ? `<div class="cam-preview-link">${stream.slice(0,40)}…</div>` : ''}
+      </div>`;
+    }).join('');
+  }
+
+  // ── Render map markers ─────────────────────────────────────
+  function renderCamMarkersOnMap(cams) {
+    // Remove old markers
+    Object.values(camMarkers).forEach(m => { try { m.remove(); } catch(e) {} });
+    camMarkers = {};
+
+    if (!window.map || !window.maptilersdk) return;
+
+    cams.forEach((c, i) => {
+      const lat = camLat(c);
+      const lon = camLon(c);
+      if (lat == null || lon == null) return;
+
+      const el = document.createElement('div');
+      el.className = 'cam-marker' + (camInUse(c) ? ' inuse' : '');
+      el.title = camName(c) + (camLocation(c) ? ' — ' + camLocation(c) : '');
+      el.addEventListener('click', () => camItemClick(i));
+
+      try {
+        const marker = new maptilersdk.Marker({ element: el })
+          .setLngLat([lon, lat])
+          .addTo(map);
+        camMarkers[c.id || i] = marker;
+      } catch(e) {}
+    });
+  }
+
+  // ── Add camera to top strip ────────────────────────────────
+  function addCamToStrip(cam, idx) {
+    const strip = document.getElementById('cam-strip');
+    const id    = cam.id || idx;
+    if (activeCams.has(id)) return; // already in strip
+    activeCams.add(id);
+
+    const cell = document.createElement('div');
+    cell.className = 'cam-strip-cell active';
+    cell.dataset.camId = id;
+    cell.innerHTML = `
+      <div class="cam-strip-onair">ON AIR</div>
+      <div class="cam-strip-name">${camName(cam)}</div>
+      <div class="cam-strip-loc">${camLocation(cam)}</div>
+      <div class="cam-strip-actions">
+        <button class="cam-strip-btn play" onclick="event.stopPropagation();camPlayFeed(${idx})">Play</button>
+        <button class="cam-strip-btn"      onclick="event.stopPropagation();camClearFromStrip(${idx}, '${id}')">Clear</button>
+      </div>
+    `;
+    cell.addEventListener('click', () => camPlayFeed(idx));
+    strip.appendChild(cell);
+
+    // Start timer for this cam
+    startCamTimer(cam, id);
+  }
+
+  // ── Remove camera from strip ───────────────────────────────
+  window.camClearFromStrip = function(idx, id) {
+    const strip = document.getElementById('cam-strip');
+    const cell  = strip.querySelector(`[data-cam-id="${id}"]`);
+    if (cell) strip.removeChild(cell);
+    activeCams.delete(id);
+    activeCams.delete(parseInt(id));
+    stopCamTimer(id);
+    // Update sidebar selection
+    renderCamList(filteredCams);
+  };
+
+  // ── Play feed in right panel ───────────────────────────────
+  window.camPlayFeed = function(idx) {
+    const cam    = allCameras[idx];
+    if (!cam) return;
+    const stream = camStream(cam);
+    const yt     = camYoutube(cam);
+    const label  = document.getElementById('cam-embed-label');
+
+    if (yt) {
+      const ytId  = yt.includes('watch?v=') ? yt.split('v=')[1].split('&')[0]
+                  : yt.includes('youtu.be/') ? yt.split('youtu.be/')[1]
+                  : yt;
+      document.getElementById('cam-embed-input').value = `https://youtu.be/${ytId}`;
+      document.getElementById('cam-embed-frame').src   = `https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1`;
+      label.textContent = camName(cam) + ' — YouTube';
+    } else if (stream) {
+      document.getElementById('cam-embed-input').value = stream;
+      // HLS streams need a player — use hls.js via jsDelivr
+      loadHLSInFrame(stream, camName(cam));
+      label.textContent = camName(cam);
+    } else {
+      label.textContent = 'NO STREAM URL FOR THIS CAMERA';
+    }
+  };
+
+  // ── HLS playback via embedded HTML ────────────────────────
+  function loadHLSInFrame(url, name) {
+    const html = `<!DOCTYPE html><html><head><style>
+      body{margin:0;background:#000;display:flex;align-items:center;justify-content:center;height:100vh;}
+      video{width:100%;height:100%;object-fit:contain;}
+    </style></head><body>
+    <video id="v" autoplay muted controls playsinline></video>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.12/dist/hls.min.js"><\/script>
+    <script>
+      const v = document.getElementById('v');
+      if (Hls.isSupported()) {
+        const h = new Hls(); h.loadSource('${url}'); h.attachMedia(v); h.on(Hls.Events.MANIFEST_PARSED, ()=>v.play().catch(()=>{}));
+      } else if (v.canPlayType('application/vnd.apple.mpegurl')) {
+        v.src = '${url}'; v.play().catch(()=>{});
+      }
+    <\/script></body></html>`;
+    const blob  = new Blob([html], { type: 'text/html' });
+    const burl  = URL.createObjectURL(blob);
+    document.getElementById('cam-embed-frame').src = burl;
+  }
+
+  // ── Manual embed input ─────────────────────────────────────
+  window.loadCamEmbed = function() {
+    const val = document.getElementById('cam-embed-input').value.trim();
+    if (!val) return;
+    if (val.includes('youtube.com') || val.includes('youtu.be')) {
+      const idM = val.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+      const ytId = idM ? idM[1] : val;
+      document.getElementById('cam-embed-frame').src = `https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1`;
+      document.getElementById('cam-embed-label').textContent = '511LA.ORG CAM';
+    } else {
+      loadHLSInFrame(val, 'Custom Feed');
+      document.getElementById('cam-embed-label').textContent = val.slice(0, 40);
+    }
+  };
+
+  // ── Sidebar item click → add to strip ─────────────────────
+  window.camItemClick = function(idx) {
+    const cam = filteredCams[idx];
+    if (!cam) return;
+    const realIdx = allCameras.indexOf(cam);
+    addCamToStrip(cam, realIdx);
+    // Highlight in list
+    document.querySelectorAll('.cam-item').forEach((el, i) => {
+      el.classList.toggle('selected', i === idx);
+    });
+    // Show preview
+    renderCamPreviews([cam, ...allCameras.filter(c => c !== cam).slice(0, 9)]);
+  };
+
+  window.camPreviewClick = function(idx) {
+    camItemClick(allCameras.indexOf(allCameras[idx]) >= 0 ? allCameras.indexOf(allCameras[idx]) : idx);
+    camPlayFeed(idx);
+  };
+
+  // ── Search filter ──────────────────────────────────────────
+  window.camSearchFilter = function(q) {
+    const lq = q.toLowerCase();
+    filteredCams = q
+      ? allCameras.filter(c =>
+          camName(c).toLowerCase().includes(lq) ||
+          camLocation(c).toLowerCase().includes(lq)
+        )
+      : [...allCameras];
+    renderCamList(filteredCams);
+  };
+
+  // ── Timers ─────────────────────────────────────────────────
+  function startCamTimer(cam, id) {
+    if (camTimers[id]) return;
+    const start = Date.now();
+    const rowEl = document.createElement('div');
+    rowEl.className = 'cam-timer-row';
+    rowEl.dataset.timerId = id;
+    rowEl.innerHTML = `
+      <div>
+        <div class="cam-timer-name">${camName(cam)}</div>
+        <div class="cam-timer-sub">${camLocation(cam)}</div>
+      </div>
+      <div class="cam-timer-val" id="cam-timer-val-${id}">00:00:00</div>
+    `;
+    document.getElementById('cam-timers-list').appendChild(rowEl);
+    // Clear "no timers" placeholder
+    const empty = document.querySelector('#cam-timers-list > div:not(.cam-timer-row)');
+    if (empty) empty.remove();
+
+    const interval = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - start) / 1000);
+      const h = String(Math.floor(elapsed / 3600)).padStart(2, '0');
+      const m = String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0');
+      const s = String(elapsed % 60).padStart(2, '0');
+      const el = document.getElementById(`cam-timer-val-${id}`);
+      if (el) el.textContent = `${h}:${m}:${s}`;
+    }, 1000);
+
+    camTimers[id] = { start, interval };
+  }
+
+  function stopCamTimer(id) {
+    const t = camTimers[id];
+    if (!t) return;
+    clearInterval(t.interval);
+    delete camTimers[id];
+    const row = document.querySelector(`[data-timer-id="${id}"]`);
+    if (row) row.remove();
+    if (!document.querySelector('.cam-timer-row')) {
+      document.getElementById('cam-timers-list').innerHTML =
+        '<div style="font-family:Arial,sans-serif;font-size:11px;letter-spacing:1px;color:rgba(255,255,255,0.2);padding:8px 14px;">No active timers</div>';
+    }
+  }
+
+  window.clearCamTimers = function() {
+    Object.keys(camTimers).forEach(stopCamTimer);
+  };
+
+  window.generateCamReport = function() {
+    const lines = Object.entries(camTimers).map(([id, t]) => {
+      const elapsed = Math.floor((Date.now() - t.start) / 1000);
+      const cam = allCameras.find(c => (c.id || allCameras.indexOf(c)) == id);
+      return (cam ? camName(cam) : id) + ': ' + Math.floor(elapsed/60) + 'm ' + (elapsed%60) + 's';
+    });
+    alert('CAMERA REPORT\n' + (lines.length ? lines.join('\n') : 'No active timers.'));
+  };
+
+})();
+
 </script>
