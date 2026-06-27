@@ -503,106 +503,7 @@
       border-color: #00ffff;
     }
 
-    /* Color Customization Menu */
-    .menu-button {
-      position: fixed;
-      top: 20px;
-      left: 170px;
-      z-index: 2000;
-      background: rgba(0,24,55,0.95);
-      color: #00ffff;
-      border: 1px solid rgba(0,150,255,0.2);
-      padding: 8px 12px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-family: 'Bebas Neue', Arial, sans-serif;
-      font-size: 14px;
-    }
-
-    .color-menu {
-      position: fixed;
-      top: 60px;
-      left: 170px;
-      z-index: 2000;
-      background: rgba(0,24,55,0.95);
-      border: 1px solid rgba(0,150,255,0.2);
-      border-radius: 8px;
-      padding: 15px;
-      display: none;
-      max-height: 80vh;
-      overflow-y: auto;
-      width: 300px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    }
-
-    .color-menu.visible {
-      display: block !important;
-    }
-
-    .color-menu h3 {
-      color: #00ffff;
-      margin: 0 0 10px 0;
-      font-family: 'Bebas Neue', Arial, sans-serif;
-      font-size: 16px;
-    }
-
-    .color-picker-row {
-      display: flex;
-      align-items: center;
-      margin: 6px 0;
-      padding: 4px 0;
-      border-bottom: 1px solid rgba(0,150,255,0.1);
-    }
-
-    .color-picker-label {
-      flex: 1;
-      color: #fff;
-      font-family: 'Bebas Neue', Arial, sans-serif;
-      font-size: 13px;
-    }
-
-    .color-picker-input {
-      width: 60px;
-      height: 25px;
-      padding: 0;
-      border: 2px solid rgba(0,150,255,0.3);
-      border-radius: 4px;
-      background: none;
-      cursor: pointer;
-    }
-
-    /* Custom color picker styling */
-    .color-picker-input::-webkit-color-swatch-wrapper {
-      padding: 0;
-    }
-    .color-picker-input::-webkit-color-swatch {
-      border: 2px solid rgba(0,150,255,0.3);
-      border-radius: 4px;
-    }
-
-    .reset-colors-btn {
-      margin-top: 15px;
-      padding: 8px 12px;
-      background: rgba(255,255,255,0.1);
-      border: 1px solid rgba(0,150,255,0.3);
-      color: #00ffff;
-      border-radius: 4px;
-      cursor: pointer;
-      font-family: 'Bebas Neue', Arial, sans-serif;
-      font-size: 14px;
-      width: 100%;
-    }
-
-    .color-menu-section {
-      margin-bottom: 15px;
-    }
-
-    .color-menu-section h4 {
-      color: #00ffff;
-      margin: 10px 0;
-      font-size: 14px;
-      font-family: 'Bebas Neue', Arial, sans-serif;
-    }
+    /* Color Customization Menu — now inside ctrl-panel; old fixed styles removed */
 
     .maplibregl-popup.alert-map-popup {
       font-family: 'Bebas Neue', Arial, sans-serif !important;
@@ -1052,7 +953,6 @@
     }
     .cam-item:hover { background: rgba(255,255,255,0.05); }
     .cam-item.selected { background: rgba(0,180,255,0.08); }
-    .cam-item-info {}
     .cam-item-name {
       font-size: 14px;
       letter-spacing: 1px;
@@ -1154,7 +1054,8 @@
       align-items: stretch;
     }
     body.cam-mode #cam-strip { display: flex; z-index: 600; }
-    body.cam-mode #layers-toolbar { top: 110px !important; left: 320px !important; }
+    body.cam-mode #ctrl-toggle { left: 330px !important; top: 120px !important; }
+    body.cam-mode #ctrl-panel { display: none !important; }
     #cam-strip::-webkit-scrollbar { height: 3px; }
     #cam-strip::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
 
@@ -1564,46 +1465,147 @@
     }
     #tour-close:hover { color: #fff; }
 
-    /* ===== LAYERS TOOLBAR ===== */
-    #layers-toolbar {
+    /* ===== NEW CONTROL PANEL SYSTEM ===== */
+    #ctrl-toggle {
       position: fixed;
       top: 20px;
       left: 20px;
-      z-index: 2500;
+      z-index: 3100;
+      background: rgba(0,10,30,0.96);
+      border: 1px solid rgba(0,180,255,0.4);
+      color: #00cfff;
+      font-family: 'Bebas Neue', Arial, sans-serif;
+      font-size: 14px;
+      letter-spacing: 2px;
+      padding: 8px 14px;
+      cursor: pointer;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.5);
+      transition: all 0.15s;
+    }
+    #ctrl-toggle:hover { background: rgba(0,30,70,0.97); border-color: #00cfff; }
+    #ctrl-toggle .ctrl-hamburger { font-size: 16px; line-height: 1; }
+
+    #ctrl-panel {
+      position: fixed;
+      top: 0; left: -360px;
+      width: 330px;
+      height: 100vh;
+      background: rgba(0,6,20,0.98);
+      border-right: 1px solid rgba(0,150,255,0.2);
+      box-shadow: 6px 0 32px rgba(0,0,0,0.7);
+      z-index: 3050;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      font-family: 'Bebas Neue', Arial, sans-serif;
+      transition: left 0.28s cubic-bezier(.4,0,.2,1);
+      overflow: hidden;
+    }
+    #ctrl-panel.open { left: 0; }
+
+    #ctrl-header {
+      background: linear-gradient(90deg, rgba(0,40,100,0.9), rgba(0,15,45,0.95));
+      border-bottom: 1px solid rgba(0,180,255,0.2);
+      padding: 14px 16px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    #ctrl-title {
+      font-size: 17px;
+      letter-spacing: 4px;
+      color: #fff;
+    }
+    #ctrl-subtitle {
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: rgba(0,200,255,0.5);
+      margin-top: 2px;
+    }
+    #ctrl-close {
+      color: rgba(255,255,255,0.45);
+      font-size: 20px;
+      cursor: pointer;
+      padding: 2px 6px;
+    }
+    #ctrl-close:hover { color: #fff; }
+
+    #ctrl-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px 0 16px;
+    }
+    #ctrl-body::-webkit-scrollbar { width: 4px; }
+    #ctrl-body::-webkit-scrollbar-thumb { background: rgba(0,150,255,0.2); border-radius: 2px; }
+
+    .ctrl-section {
+      padding: 6px 0 8px;
+      border-bottom: 1px solid rgba(0,100,200,0.1);
+    }
+    .ctrl-section:last-child { border-bottom: none; }
+    .ctrl-section-label {
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: rgba(0,200,255,0.4);
+      padding: 6px 14px 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .ctrl-section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(0,150,255,0.1);
+    }
+    .ctrl-btn-wrap {
+      padding: 2px 10px;
+      position: relative;
+    }
+
+    /* Toolbar buttons (re-scoped inside panel) */
+    #layers-toolbar {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
     }
     .toolbar-btn {
-      background: rgba(0,14,38,0.95);
-      border: 1px solid rgba(0,150,255,0.25);
+      background: rgba(0,14,38,0.9);
+      border: 1px solid rgba(0,150,255,0.22);
       color: #7ac8ff;
       font-family: 'Bebas Neue', Arial, sans-serif;
       font-size: 12px;
       letter-spacing: 1.5px;
-      padding: 6px 10px;
+      padding: 7px 12px;
       cursor: pointer;
       border-radius: 4px;
       text-align: left;
-      min-width: 140px;
-      transition: all 0.15s;
+      width: 100%;
+      transition: all 0.12s;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 7px;
+      box-sizing: border-box;
     }
-    .toolbar-btn:hover { background: rgba(0,30,70,0.95); border-color: rgba(0,200,255,0.5); }
+    .toolbar-btn:hover { background: rgba(0,30,70,0.95); border-color: rgba(0,200,255,0.5); color: #b0e4ff; }
     .toolbar-btn.active { background: rgba(0,60,120,0.9); border-color: #00cfff; color: #00cfff; }
-    .toolbar-btn .btn-icon { font-size: 14px; }
+    .toolbar-btn .btn-icon { font-size: 14px; flex-shrink: 0; }
+    .toolbar-btn .btn-arrow { margin-left: auto; font-size: 10px; color: rgba(0,200,255,0.4); transition: transform 0.2s; }
+    .toolbar-btn .btn-arrow.open { transform: rotate(180deg); }
+
     .toolbar-dropdown {
-      background: rgba(0,12,32,0.97);
-      border: 1px solid rgba(0,150,255,0.2);
-      border-radius: 6px;
-      padding: 8px;
+      background: rgba(0,8,24,0.98);
+      border: 1px solid rgba(0,150,255,0.15);
+      border-radius: 5px;
+      padding: 6px;
       display: none;
       flex-direction: column;
-      gap: 3px;
-      min-width: 160px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+      gap: 2px;
+      margin-top: 2px;
     }
     .toolbar-dropdown.open { display: flex; }
     .dropdown-item {
@@ -1613,15 +1615,184 @@
       font-family: 'Bebas Neue', Arial, sans-serif;
       font-size: 11px;
       letter-spacing: 1px;
-      padding: 5px 8px;
+      padding: 5px 10px;
       cursor: pointer;
       border-radius: 3px;
       text-align: left;
       transition: all 0.1s;
+      width: 100%;
+      box-sizing: border-box;
     }
     .dropdown-item:hover { background: rgba(0,100,200,0.2); color: #fff; border-color: rgba(0,150,255,0.3); }
     .dropdown-item.active { background: rgba(0,80,180,0.3); color: #00cfff; border-color: rgba(0,200,255,0.4); }
-    .dropdown-separator { border-top: 1px solid rgba(0,100,200,0.15); margin: 3px 0; }
+    .dropdown-separator { border-top: 1px solid rgba(0,100,200,0.12); margin: 3px 0; }
+
+    /* Scene management */
+    #scenes-list {
+      padding: 0 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    #scenes-list::-webkit-scrollbar { width: 3px; }
+    #scenes-list::-webkit-scrollbar-thumb { background: rgba(0,150,255,0.2); border-radius: 2px; }
+    .scene-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0,30,70,0.5);
+      border: 1px solid rgba(0,150,255,0.15);
+      border-radius: 4px;
+      padding: 6px 8px;
+    }
+    .scene-item-name {
+      flex: 1;
+      font-size: 12px;
+      letter-spacing: 1px;
+      color: #b0d8ff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .scene-item-time {
+      font-size: 9px;
+      color: rgba(0,200,255,0.4);
+      letter-spacing: 0.5px;
+    }
+    .scene-btn {
+      background: none;
+      border: 1px solid rgba(0,150,255,0.25);
+      color: rgba(0,200,255,0.7);
+      font-family: 'Bebas Neue', Arial, sans-serif;
+      font-size: 10px;
+      padding: 3px 6px;
+      border-radius: 3px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .scene-btn:hover { background: rgba(0,100,200,0.2); color: #fff; }
+    .scene-btn.del { border-color: rgba(255,60,60,0.25); color: rgba(255,100,100,0.7); }
+    .scene-btn.del:hover { background: rgba(255,0,0,0.15); color: #ff4444; }
+    #scene-save-bar {
+      padding: 6px 10px 2px;
+      display: flex;
+      gap: 6px;
+    }
+    #scene-name-input {
+      flex: 1;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(0,150,255,0.2);
+      border-radius: 4px;
+      color: #fff;
+      font-family: 'Bebas Neue', Arial, sans-serif;
+      font-size: 12px;
+      letter-spacing: 1px;
+      padding: 6px 9px;
+      outline: none;
+    }
+    #scene-name-input::placeholder { color: rgba(255,255,255,0.2); font-size: 10px; }
+    #scene-save-btn {
+      background: rgba(0,100,200,0.3);
+      border: 1px solid rgba(0,150,255,0.4);
+      color: #00cfff;
+      font-family: 'Bebas Neue', Arial, sans-serif;
+      font-size: 11px;
+      letter-spacing: 1px;
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    #scene-save-btn:hover { background: rgba(0,120,240,0.5); }
+    #scenes-empty {
+      font-size: 10px;
+      letter-spacing: 1px;
+      color: rgba(0,200,255,0.3);
+      padding: 6px 10px;
+      text-align: center;
+    }
+
+    /* Inline color menu (inside panel) */
+    #ctrl-color-toggle {
+      width: 100%;
+      box-sizing: border-box;
+      background: rgba(0,14,38,0.9);
+      border: 1px solid rgba(0,150,255,0.22);
+      color: #7ac8ff;
+      font-family: 'Bebas Neue', Arial, sans-serif;
+      font-size: 12px;
+      letter-spacing: 1.5px;
+      padding: 7px 12px;
+      cursor: pointer;
+      border-radius: 4px;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    #ctrl-color-toggle:hover { background: rgba(0,30,70,0.95); border-color: rgba(0,200,255,0.5); }
+    #ctrl-color-body {
+      display: none;
+      padding: 6px 10px 2px;
+    }
+    #ctrl-color-body.open { display: block; }
+    .ctrl-color-section-title {
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: rgba(0,200,255,0.4);
+      padding: 6px 0 3px;
+      border-bottom: 1px solid rgba(0,100,200,0.1);
+      margin-bottom: 4px;
+    }
+    .color-picker-row {
+      display: flex;
+      align-items: center;
+      padding: 3px 0;
+      border-bottom: 1px solid rgba(0,100,200,0.05);
+    }
+    .color-picker-label {
+      flex: 1;
+      color: rgba(200,220,255,0.8);
+      font-family: 'Bebas Neue', Arial, sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+    }
+    .color-picker-input {
+      width: 36px;
+      height: 22px;
+      padding: 0;
+      border: 1px solid rgba(0,150,255,0.3);
+      border-radius: 3px;
+      background: none;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .color-picker-input::-webkit-color-swatch-wrapper { padding: 0; }
+    .color-picker-input::-webkit-color-swatch { border: none; border-radius: 2px; }
+    #ctrl-color-reset {
+      margin-top: 8px;
+      padding: 6px 10px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(0,150,255,0.2);
+      color: #7ac8ff;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: 'Bebas Neue', Arial, sans-serif;
+      font-size: 11px;
+      width: 100%;
+      letter-spacing: 1px;
+    }
+
+    /* Backdrop when panel open */
+    #ctrl-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 3040;
+      background: rgba(0,0,0,0.35);
+      display: none;
+    }
+    #ctrl-backdrop.open { display: block; }
 
     /* ===== TROPICAL INFO CONTAINER ===== */
     #tropical-info-card {
@@ -1926,189 +2097,292 @@
     <button id="tour-close">✕</button>
   </div>
 
-  <!-- ===== LAYERS TOOLBAR ===== -->
-  <div id="layers-toolbar">
-    <!-- Radar dropdown -->
-    <div style="position:relative;">
-      <button class="toolbar-btn" id="tb-radar" onclick="toggleDropdown('dd-radar')"><span class="btn-icon">📡</span>NEXRAD RADAR</button>
-      <div class="toolbar-dropdown" id="dd-radar">
-        <div style="font-size:10px;color:rgba(0,200,255,0.5);letter-spacing:1px;padding:2px 6px 4px;">LEVEL 2 (SINGLE SITE)</div>
-        <button class="dropdown-item" onclick="loadNexradL2('KLOT')">KLOT – Chicago</button>
-        <button class="dropdown-item" onclick="loadNexradL2('KTLX')">KTLX – OKC</button>
-        <button class="dropdown-item" onclick="loadNexradL2('KFWS')">KFWS – DFW</button>
-        <button class="dropdown-item" onclick="loadNexradL2('KBMX')">KBMX – Birmingham</button>
-        <button class="dropdown-item" onclick="loadNexradL2('KICT')">KICT – Wichita</button>
-        <div class="dropdown-separator"></div>
-        <div style="font-size:10px;color:rgba(0,200,255,0.5);letter-spacing:1px;padding:2px 6px 4px;">LEVEL 3 (NATIONAL)</div>
-        <button class="dropdown-item" id="l3-base-ref" onclick="toggleNexradL3('base-ref','N0B')">Base Reflectivity</button>
-        <button class="dropdown-item" id="l3-comp-ref" onclick="toggleNexradL3('comp-ref','NCR')">Composite Reflectivity</button>
-        <button class="dropdown-item" id="l3-velocity" onclick="toggleNexradL3('velocity','N0S')">Base Velocity</button>
-        <button class="dropdown-item" id="l3-precip" onclick="toggleNexradL3('precip','N1P')">1-hr Precipitation</button>
-        <div class="dropdown-separator"></div>
-        <button class="dropdown-item" id="l3-rainviewer" onclick="toggleRainviewer()" class="active">RainViewer (Default)</button>
+  <!-- ===== CONTROL PANEL TOGGLE BUTTON ===== -->
+  <button id="ctrl-toggle" onclick="toggleControlPanel()">
+    <span class="ctrl-hamburger">≡</span> CONTROLS
+  </button>
+
+  <!-- ===== BACKDROP ===== -->
+  <div id="ctrl-backdrop" onclick="closeControlPanel()"></div>
+
+  <!-- ===== MAIN CONTROL PANEL ===== -->
+  <div id="ctrl-panel">
+    <div id="ctrl-header">
+      <div>
+        <div id="ctrl-title">RADAR.EXE</div>
+        <div id="ctrl-subtitle">CONTROL PANEL</div>
       </div>
+      <span id="ctrl-close" onclick="closeControlPanel()">✕</span>
     </div>
+    <div id="ctrl-body">
 
-    <!-- SPC Outlook -->
-    <div style="position:relative;">
-      <button class="toolbar-btn" id="tb-spc" onclick="toggleSPCLayer()"><span class="btn-icon">🌪</span>SPC OUTLOOK</button>
-    </div>
-
-    <!-- Rawinsonde Outlooks -->
-    <div style="position:relative;">
-      <button class="toolbar-btn" id="tb-rawinsonde" onclick="toggleDropdown('dd-rawinsonde')"><span class="btn-icon">🎈</span>OUTLOOKS</button>
-      <div class="toolbar-dropdown" id="dd-rawinsonde" style="min-width:180px;">
-        <div style="font-size:10px;color:rgba(0,200,255,0.5);letter-spacing:1px;padding:4px 8px 2px;">RAWINSONDE.COM</div>
-        <button class="dropdown-item" id="raw-day1" onclick="loadRawinsonde('day1')">Day 1 Outlook</button>
-        <button class="dropdown-item" id="raw-day2" onclick="loadRawinsonde('day2')">Day 2 Outlook</button>
-        <button class="dropdown-item" id="raw-day3" onclick="loadRawinsonde('day3')">Day 3 Outlook</button>
-        <div class="dropdown-separator"></div>
-        <button class="dropdown-item" id="raw-tornado" onclick="loadRawinsonde('tornado')">Tornado Outlook</button>
-        <button class="dropdown-item" id="raw-hail"    onclick="loadRawinsonde('hail')">Hail Outlook</button>
-        <button class="dropdown-item" id="raw-wind"    onclick="loadRawinsonde('wind')">Wind Outlook</button>
-        <div class="dropdown-separator"></div>
-        <button class="dropdown-item" onclick="clearRawinsonde()">🗑 Clear</button>
-      </div>
-    </div>
-
-    <!-- ACO - Automated Convective Outlook -->
-    <div style="position:relative;">
-      <button class="toolbar-btn" id="tb-aco" onclick="toggleDropdown('dd-aco')"><span class="btn-icon">🤖</span>ACO</button>
-      <div class="toolbar-dropdown" id="dd-aco" style="min-width:190px;">
-        <div style="font-size:10px;color:rgba(0,200,255,0.5);letter-spacing:1px;padding:4px 8px 2px;">AUTOMATED CONVECTIVE OUTLOOK</div>
-        <button class="dropdown-item" id="aco-current" onclick="loadACO('current')">Current ACO</button>
-        <button class="dropdown-item" id="aco-1hr"     onclick="loadACO('1hr')">1-Hour ACO</button>
-        <button class="dropdown-item" id="aco-2hr"     onclick="loadACO('2hr')">2-Hour ACO</button>
-        <button class="dropdown-item" id="aco-3hr"     onclick="loadACO('3hr')">3-Hour ACO</button>
-        <div class="dropdown-separator"></div>
-        <button class="dropdown-item" onclick="clearACO()">🗑 Clear</button>
-      </div>
-    </div>
-
-    <!-- ECCC Alerts -->
-    <div style="position:relative;">
-      <button class="toolbar-btn" id="tb-eccc" onclick="toggleECCC()"><span class="btn-icon">🍁</span>ECCC ALERTS</button>
-    </div>
-
-    <!-- Mesoscale Discussions -->
-    <div style="position:relative;">
-      <button class="toolbar-btn" id="tb-md" onclick="toggleMDs()"><span class="btn-icon">🔴</span>MESO DISC</button>
-    </div>
-
-    <!-- Models dropdown -->
-    <div style="position:relative;">
-      <button class="toolbar-btn" id="tb-models" onclick="toggleDropdown('dd-models')"><span class="btn-icon">🔮</span>MODELS</button>
-      <div class="toolbar-dropdown" id="dd-models">
-        <div style="font-size:10px;color:rgba(0,200,255,0.5);letter-spacing:1px;padding:2px 6px 4px;">ANALYSIS</div>
-        <button class="dropdown-item" id="mdl-rtma-temp" onclick="toggleModel('rtma-temp','RTMA Temperature')">RTMA Temperature</button>
-        <button class="dropdown-item" id="mdl-rtma-wind" onclick="toggleModel('rtma-wind','RTMA Wind')">RTMA Wind Speed</button>
-        <div class="dropdown-separator"></div>
-        <div style="font-size:10px;color:rgba(0,200,255,0.5);letter-spacing:1px;padding:2px 6px 4px;">GFS FORECAST</div>
-        <button class="dropdown-item" id="mdl-gfs-temp" onclick="toggleModel('gfs-temp','GFS Temperature')">GFS 2m Temperature</button>
-        <button class="dropdown-item" id="mdl-gfs-precip" onclick="toggleModel('gfs-precip','GFS Precip')">GFS Precipitation</button>
-        <button class="dropdown-item" id="mdl-gfs-cape" onclick="toggleModel('gfs-cape','GFS CAPE')">GFS CAPE</button>
-        <div class="dropdown-separator"></div>
-        <div style="font-size:10px;color:rgba(0,200,255,0.5);letter-spacing:1px;padding:2px 6px 4px;">NAM FORECAST</div>
-        <button class="dropdown-item" id="mdl-nam-temp" onclick="toggleModel('nam-temp','NAM Temperature')">NAM Temperature</button>
-        <button class="dropdown-item" id="mdl-nam-precip" onclick="toggleModel('nam-precip','NAM Precip')">NAM Precipitation</button>
-      </div>
-    </div>
-
-    <!-- Storm Reports -->
-    <div style="position:relative;">
-      <button class="toolbar-btn" id="tb-storm-reports" onclick="toggleStormReports()"><span class="btn-icon">⚡</span>STORM REPORTS</button>
-    </div>
-
-    <!-- Tropical -->
-    <div style="position:relative;">
-      <button class="toolbar-btn" id="tb-tropical" onclick="toggleTropical()"><span class="btn-icon">🌀</span>TROPICAL</button>
-    </div>
-
-    <!-- Cooper Watch -->
-    <div style="position:relative;">
-      <button class="toolbar-btn" id="tb-cooper" onclick="toggleDropdown('dd-cooper')"><span class="btn-icon">🟠</span>COOPER WATCH</button>
-      <div class="toolbar-dropdown" id="dd-cooper">
-        <button class="dropdown-item" onclick="startCooperDraw()">✏️ Issue New Watch</button>
-        <button class="dropdown-item" onclick="clearAllCooperWatches()">🗑 Clear All Watches</button>
-        <div class="dropdown-separator"></div>
-        <div id="cooper-watch-list-dd" style="font-size:11px;color:rgba(255,160,80,0.6);padding:4px 6px;letter-spacing:1px;">No active watches</div>
-      </div>
-    </div>
-
-    <!-- Storm Tracks -->
-    <div style="position:relative;">
-      <button class="toolbar-btn" id="tb-stormtrack" onclick="toggleDropdown('dd-stormtrack')"><span class="btn-icon">🌀</span>STORM TRACKS</button>
-      <div class="toolbar-dropdown" id="dd-stormtrack" style="min-width:180px;">
-        <button class="dropdown-item" id="st-draw-btn" onclick="startStormTrackDraw()">✏️ Draw New Track</button>
-        <button class="dropdown-item" onclick="clearAllStormTracks()">🗑 Clear All Tracks</button>
-        <div class="dropdown-separator"></div>
-        <div id="st-track-list" style="font-size:11px;color:rgba(100,200,255,0.5);padding:4px 6px;letter-spacing:1px;">No tracks</div>
-      </div>
-    </div>
-
-    <!-- Lightning -->
-    <div style="position:relative;">
-      <button class="toolbar-btn" id="tb-lightning" onclick="toggleLightning()"><span class="btn-icon">⚡</span>LIGHTNING</button>
-    </div>
-
-    <!-- Highlight Area -->
-    <div style="position:relative;">
-      <button class="toolbar-btn" id="tb-highlight" onclick="toggleDropdown('dd-highlight')"><span class="btn-icon">🔦</span>HIGHLIGHT AREA</button>
-      <div class="toolbar-dropdown" id="dd-highlight" style="min-width:230px;">
-        <!-- Tint settings -->
-        <div style="font-size:10px;color:rgba(0,200,255,0.5);letter-spacing:1px;padding:4px 8px 2px;">TINT COLOR</div>
-        <div style="display:flex;align-items:center;gap:8px;padding:4px 8px 6px;">
-          <input type="color" id="hl-color" value="#000000" style="width:32px;height:24px;border:1px solid rgba(0,200,255,0.3);border-radius:3px;background:none;cursor:pointer;padding:1px;">
-          <div style="display:flex;gap:4px;">
-            <div class="hl-preset" data-color="#000000" style="width:18px;height:18px;border-radius:3px;background:#000;border:1px solid rgba(255,255,255,0.2);cursor:pointer;"></div>
-            <div class="hl-preset" data-color="#001122" style="width:18px;height:18px;border-radius:3px;background:#001122;border:1px solid rgba(255,255,255,0.2);cursor:pointer;"></div>
-            <div class="hl-preset" data-color="#1a0000" style="width:18px;height:18px;border-radius:3px;background:#1a0000;border:1px solid rgba(255,255,255,0.2);cursor:pointer;"></div>
-            <div class="hl-preset" data-color="#111111" style="width:18px;height:18px;border-radius:3px;background:#111;border:1px solid rgba(255,255,255,0.2);cursor:pointer;"></div>
+      <!-- RADAR section -->
+      <div class="ctrl-section">
+        <div class="ctrl-section-label">RADAR</div>
+        <div id="layers-toolbar">
+          <div class="ctrl-btn-wrap" style="position:relative;">
+            <button class="toolbar-btn" id="tb-radar" onclick="toggleDropdown('dd-radar')">
+              <span class="btn-icon">📡</span>NEXRAD RADAR<span class="btn-arrow" id="arr-dd-radar">▾</span>
+            </button>
+            <div class="toolbar-dropdown" id="dd-radar" style="min-width:230px;">
+              <div style="font-size:9px;color:rgba(0,200,255,0.5);letter-spacing:2px;padding:4px 8px 3px;">REFLECTIVITY</div>
+              <button class="dropdown-item" id="dp-N0Q" data-product="N0Q" onclick="loadSiteProduct('N0Q','REFLECTIVITY')">Base Reflectivity</button>
+              <button class="dropdown-item" id="dp-N0B" data-product="N0B" onclick="loadSiteProduct('N0B','REFL X')">Reflectivity X</button>
+              <button class="dropdown-item" id="dp-NCR" data-product="NCR" onclick="loadSiteProduct('NCR','MAX REFL')">Max Reflectivity</button>
+              <div class="dropdown-separator"></div>
+              <div style="font-size:9px;color:rgba(0,200,255,0.5);letter-spacing:2px;padding:4px 8px 3px;">VELOCITY</div>
+              <button class="dropdown-item" id="dp-N0U" data-product="N0U" onclick="loadSiteProduct('N0U','VELOCITY')">Base Velocity</button>
+              <button class="dropdown-item" id="dp-N0S" data-product="N0S" onclick="loadSiteProduct('N0S','STORM REL VEL')">Storm Relative Velocity</button>
+              <button class="dropdown-item" id="dp-NRO" data-product="NRO" onclick="loadSiteProduct('NRO','NORM ROTATION')">Normalized Rotation</button>
+              <div class="dropdown-separator"></div>
+              <div style="font-size:9px;color:rgba(0,200,255,0.5);letter-spacing:2px;padding:4px 8px 3px;">DUAL POL</div>
+              <button class="dropdown-item" id="dp-N0C" data-product="N0C" onclick="loadSiteProduct('N0C','CORR COEFF')">Correlation Coefficient</button>
+              <button class="dropdown-item" id="dp-N0K" data-product="N0K" onclick="loadSiteProduct('N0K','MIN CORR COEFF')">Min Correlation Coefficient</button>
+              <button class="dropdown-item" id="dp-N0X" data-product="N0X" onclick="loadSiteProduct('N0X','DIFF REFL')">Differential Reflectivity</button>
+              <button class="dropdown-item" id="dp-NSW" data-product="NSW" onclick="loadSiteProduct('NSW','SPEC WIDTH')">Spectrum Width</button>
+              <button class="dropdown-item" id="dp-NTP2" data-product="N0H" onclick="loadSiteProduct('N0H','PRECIP TYPE')">Precipitation Type</button>
+              <button class="dropdown-item" id="dp-N0KDP" data-product="N0K2" onclick="loadSiteProduct('N0K','SPEC DIFF PHASE')">Specific Diff. Phase</button>
+              <button class="dropdown-item" id="dp-N0H" data-product="N0H2" onclick="loadSiteProduct('N0H','HYDRO CLASS')">Hydrometeor Classification</button>
+              <div class="dropdown-separator"></div>
+              <div style="font-size:9px;color:rgba(0,200,255,0.5);letter-spacing:2px;padding:4px 8px 3px;">PRECIPITATION / TOPS</div>
+              <button class="dropdown-item" id="dp-EET" data-product="EET" onclick="loadSiteProduct('EET','ECHO TOPS')">Enhanced Echo Tops</button>
+              <button class="dropdown-item" id="dp-DVL" data-product="DVL" onclick="loadSiteProduct('DVL','VIL')">Vertical Integrated Liquid</button>
+              <button class="dropdown-item" id="dp-N1P" data-product="N1P" onclick="loadSiteProduct('N1P','1HR PRECIP')">One Hour Precip. Accum.</button>
+              <button class="dropdown-item" id="dp-NTP" data-product="NTP" onclick="loadSiteProduct('NTP','STORM PRECIP')">Storm Total Precip. Accum.</button>
+              <div class="dropdown-separator"></div>
+              <button class="dropdown-item" id="l3-rainviewer" onclick="toggleRainviewer()" class="active">🌐 RainViewer (National)</button>
+            </div>
           </div>
         </div>
-        <div style="font-size:10px;color:rgba(0,200,255,0.5);letter-spacing:1px;padding:2px 8px;">TINT OPACITY</div>
-        <div style="padding:4px 8px 8px;display:flex;align-items:center;gap:8px;">
-          <input type="range" id="hl-opacity" min="0" max="100" value="70" style="flex:1;accent-color:#00cfff;">
-          <span id="hl-opacity-val" style="font-family:'Bebas Neue',Arial,sans-serif;font-size:12px;color:#00cfff;width:32px;">70%</span>
-        </div>
-        <div class="dropdown-separator"></div>
-        <!-- Search box - type state/county name, results appear instantly -->
-        <div style="padding:4px 8px 2px;font-size:10px;color:rgba(0,200,255,0.5);letter-spacing:1px;">TYPE STATE OR COUNTY NAME</div>
-        <div style="padding:2px 6px 4px;position:relative;">
-          <input id="hl-search" type="text" placeholder="e.g. Kansas, Montgomery AL..." autocomplete="off"
-            style="width:calc(100% - 18px);background:rgba(255,255,255,0.06);border:1px solid rgba(0,200,255,0.2);border-radius:3px;color:#fff;font-family:'Bebas Neue',Arial,sans-serif;font-size:12px;letter-spacing:1px;padding:6px 8px;outline:none;">
-          <div id="hl-search-results" style="max-height:140px;overflow-y:auto;margin-top:2px;"></div>
-          <div id="hl-status" style="font-size:10px;letter-spacing:1px;padding:3px 2px;min-height:14px;color:rgba(0,200,255,0.6);"></div>
-        </div>
-        <div class="dropdown-separator"></div>
-        <!-- GeoJSON paste -->
-        <div style="padding:4px 8px 2px;font-size:10px;color:rgba(0,200,255,0.5);letter-spacing:1px;">OR PASTE GEOJSON</div>
-        <div style="padding:2px 6px 6px;">
-          <textarea id="hl-geojson-paste" placeholder="Paste GeoJSON here..." rows="3"
-            style="width:calc(100% - 18px);background:rgba(255,255,255,0.05);border:1px solid rgba(0,200,255,0.2);border-radius:3px;color:#fff;font-family:monospace;font-size:10px;padding:5px 8px;outline:none;resize:vertical;letter-spacing:0;"></textarea>
-          <div id="hl-geojson-status" style="font-size:10px;color:rgba(255,100,100,0.8);letter-spacing:1px;padding:2px 2px;min-height:14px;"></div>
-        </div>
-        <div class="dropdown-separator"></div>
-        <!-- Selected areas -->
-        <div id="hl-selected-list" style="padding:2px 6px 4px;max-height:80px;overflow-y:auto;font-size:11px;color:rgba(150,220,255,0.7);letter-spacing:1px;">No areas selected</div>
-        <div style="display:flex;gap:4px;padding:4px 6px 6px;">
-          <button class="dropdown-item active" style="flex:1;text-align:center;" onclick="applyHighlight()">APPLY</button>
-          <button class="dropdown-item" style="flex:1;text-align:center;" onclick="clearHighlight()">CLEAR</button>
+      </div>
+
+      <!-- PRODUCTS section -->
+      <div class="ctrl-section">
+        <div class="ctrl-section-label">PRODUCTS</div>
+        <div style="display:flex;flex-direction:column;gap:2px;padding:0 10px;">
+
+          <!-- SPC Outlook — now a dropdown with full options -->
+          <div style="position:relative;">
+            <button class="toolbar-btn" id="tb-spc" onclick="toggleDropdown('dd-spc')">
+              <span class="btn-icon">🌪</span>SPC OUTLOOK<span class="btn-arrow" id="arr-dd-spc">▾</span>
+            </button>
+            <div class="toolbar-dropdown" id="dd-spc" style="min-width:240px;">
+              <div style="font-size:9px;color:rgba(0,200,255,0.4);letter-spacing:2px;padding:3px 8px 2px;">CATEGORICAL OUTLOOKS</div>
+              <button class="dropdown-item" id="spc-d1-cat" onclick="loadSPCOutlook('day1','cat')">⚡ Day 1 Categorical</button>
+              <button class="dropdown-item" id="spc-d2-cat" onclick="loadSPCOutlook('day2','cat')">⚡ Day 2 Categorical</button>
+              <button class="dropdown-item" id="spc-d3-cat" onclick="loadSPCOutlook('day3','cat')">⚡ Day 3 Categorical</button>
+              <div class="dropdown-separator"></div>
+              <div style="font-size:9px;color:rgba(0,200,255,0.4);letter-spacing:2px;padding:3px 8px 2px;">DAY 1 PROBABILITY</div>
+              <button class="dropdown-item" id="spc-d1-torn" onclick="loadSPCOutlook('day1','torn')">🌪 Tornado Probability</button>
+              <button class="dropdown-item" id="spc-d1-wind" onclick="loadSPCOutlook('day1','wind')">💨 Wind Probability</button>
+              <button class="dropdown-item" id="spc-d1-hail" onclick="loadSPCOutlook('day1','hail')">🌩 Hail Probability</button>
+              <div class="dropdown-separator"></div>
+              <button class="dropdown-item" id="spc-d2-torn" onclick="loadSPCOutlook('day2','torn')">🌪 Day 2 Tornado Prob</button>
+              <button class="dropdown-item" id="spc-d2-wind" onclick="loadSPCOutlook('day2','wind')">💨 Day 2 Wind Prob</button>
+              <button class="dropdown-item" id="spc-d2-hail" onclick="loadSPCOutlook('day2','hail')">🌩 Day 2 Hail Prob</button>
+              <div class="dropdown-separator"></div>
+              <button class="dropdown-item" onclick="clearSPCOutlook()">🗑 Clear SPC</button>
+            </div>
+          </div>
+
+          <!-- Rawinsonde Outlooks -->
+          <div style="position:relative;">
+            <button class="toolbar-btn" id="tb-rawinsonde" onclick="toggleDropdown('dd-rawinsonde')">
+              <span class="btn-icon">🎈</span>OUTLOOKS<span class="btn-arrow">▾</span>
+            </button>
+            <div class="toolbar-dropdown" id="dd-rawinsonde" style="min-width:180px;">
+              <div style="font-size:10px;color:rgba(0,200,255,0.5);letter-spacing:1px;padding:4px 8px 2px;">RAWINSONDE.COM</div>
+              <button class="dropdown-item" id="raw-day1" onclick="loadRawinsonde('day1')">Day 1 Outlook</button>
+              <button class="dropdown-item" id="raw-day2" onclick="loadRawinsonde('day2')">Day 2 Outlook</button>
+              <button class="dropdown-item" id="raw-day3" onclick="loadRawinsonde('day3')">Day 3 Outlook</button>
+              <div class="dropdown-separator"></div>
+              <button class="dropdown-item" id="raw-tornado" onclick="loadRawinsonde('tornado')">Tornado Outlook</button>
+              <button class="dropdown-item" id="raw-hail"    onclick="loadRawinsonde('hail')">Hail Outlook</button>
+              <button class="dropdown-item" id="raw-wind"    onclick="loadRawinsonde('wind')">Wind Outlook</button>
+              <div class="dropdown-separator"></div>
+              <button class="dropdown-item" onclick="clearRawinsonde()">🗑 Clear</button>
+            </div>
+          </div>
+
+          <!-- ACO -->
+          <div style="position:relative;">
+            <button class="toolbar-btn" id="tb-aco" onclick="toggleDropdown('dd-aco')">
+              <span class="btn-icon">🤖</span>ACO<span class="btn-arrow">▾</span>
+            </button>
+            <div class="toolbar-dropdown" id="dd-aco" style="min-width:190px;">
+              <div style="font-size:10px;color:rgba(0,200,255,0.5);letter-spacing:1px;padding:4px 8px 2px;">AUTOMATED CONVECTIVE OUTLOOK</div>
+              <button class="dropdown-item" id="aco-current" onclick="loadACO('current')">Current ACO</button>
+              <button class="dropdown-item" id="aco-1hr"     onclick="loadACO('1hr')">1-Hour ACO</button>
+              <button class="dropdown-item" id="aco-2hr"     onclick="loadACO('2hr')">2-Hour ACO</button>
+              <button class="dropdown-item" id="aco-3hr"     onclick="loadACO('3hr')">3-Hour ACO</button>
+              <div class="dropdown-separator"></div>
+              <button class="dropdown-item" onclick="clearACO()">🗑 Clear</button>
+            </div>
+          </div>
+
+          <!-- ECCC -->
+          <button class="toolbar-btn" id="tb-eccc" onclick="toggleECCC()">
+            <span class="btn-icon">🍁</span>ECCC ALERTS
+          </button>
+
+          <!-- Meso Discussions -->
+          <button class="toolbar-btn" id="tb-md" onclick="toggleMDs()">
+            <span class="btn-icon">🔴</span>MESO DISC
+          </button>
+
+          <!-- Models -->
+          <div style="position:relative;">
+            <button class="toolbar-btn" id="tb-models" onclick="toggleDropdown('dd-models')">
+              <span class="btn-icon">🔮</span>MODELS<span class="btn-arrow">▾</span>
+            </button>
+            <div class="toolbar-dropdown" id="dd-models">
+              <div style="font-size:10px;color:rgba(0,200,255,0.5);letter-spacing:1px;padding:2px 6px 4px;">ANALYSIS</div>
+              <button class="dropdown-item" id="mdl-rtma-temp" onclick="toggleModel('rtma-temp','RTMA Temperature')">RTMA Temperature</button>
+              <button class="dropdown-item" id="mdl-rtma-wind" onclick="toggleModel('rtma-wind','RTMA Wind')">RTMA Wind Speed</button>
+              <div class="dropdown-separator"></div>
+              <div style="font-size:10px;color:rgba(0,200,255,0.5);letter-spacing:1px;padding:2px 6px 4px;">GFS FORECAST</div>
+              <button class="dropdown-item" id="mdl-gfs-temp" onclick="toggleModel('gfs-temp','GFS Temperature')">GFS 2m Temperature</button>
+              <button class="dropdown-item" id="mdl-gfs-precip" onclick="toggleModel('gfs-precip','GFS Precip')">GFS Precipitation</button>
+              <button class="dropdown-item" id="mdl-gfs-cape" onclick="toggleModel('gfs-cape','GFS CAPE')">GFS CAPE</button>
+              <div class="dropdown-separator"></div>
+              <div style="font-size:10px;color:rgba(0,200,255,0.5);letter-spacing:1px;padding:2px 6px 4px;">NAM FORECAST</div>
+              <button class="dropdown-item" id="mdl-nam-temp" onclick="toggleModel('nam-temp','NAM Temperature')">NAM Temperature</button>
+              <button class="dropdown-item" id="mdl-nam-precip" onclick="toggleModel('nam-precip','NAM Precip')">NAM Precipitation</button>
+            </div>
+          </div>
+
+          <!-- Storm Reports -->
+          <button class="toolbar-btn" id="tb-storm-reports" onclick="toggleStormReports()">
+            <span class="btn-icon">⚡</span>STORM REPORTS
+          </button>
+
+          <!-- Tropical -->
+          <button class="toolbar-btn" id="tb-tropical" onclick="toggleTropical()">
+            <span class="btn-icon">🌀</span>TROPICAL
+          </button>
         </div>
       </div>
-    </div>
 
-    <!-- Shared Locations Toggle -->
-    <button class="toolbar-btn" id="tb-shared-locations" onclick="toggleSharedLocations()" style="background:rgba(0,212,245,0.12);border-color:rgba(0,212,245,0.35);color:#00d4f5;">
-      <span class="btn-icon">📍</span>SHARED LOCATIONS
-    </button>
+      <!-- DRAWING section -->
+      <div class="ctrl-section">
+        <div class="ctrl-section-label">DRAWING & TOOLS</div>
+        <div style="display:flex;flex-direction:column;gap:2px;padding:0 10px;">
 
-    <!-- Tower Cams -->
-    <button class="toolbar-btn" id="tb-tower-cams" onclick="toggleTowerCams()">
-      <span class="btn-icon">📷</span>TOWER CAMS
-    </button>
+          <!-- Cooper Watch -->
+          <div style="position:relative;">
+            <button class="toolbar-btn" id="tb-cooper" onclick="toggleDropdown('dd-cooper')">
+              <span class="btn-icon">🟠</span>COOPER WATCH<span class="btn-arrow">▾</span>
+            </button>
+            <div class="toolbar-dropdown" id="dd-cooper">
+              <button class="dropdown-item" onclick="startCooperDraw()">✏️ Issue New Watch</button>
+              <button class="dropdown-item" onclick="clearAllCooperWatches()">🗑 Clear All Watches</button>
+              <div class="dropdown-separator"></div>
+              <div id="cooper-watch-list-dd" style="font-size:11px;color:rgba(255,160,80,0.6);padding:4px 6px;letter-spacing:1px;">No active watches</div>
+            </div>
+          </div>
 
-  </div>
+          <!-- Storm Tracks -->
+          <div style="position:relative;">
+            <button class="toolbar-btn" id="tb-stormtrack" onclick="toggleDropdown('dd-stormtrack')">
+              <span class="btn-icon">🌀</span>STORM TRACKS<span class="btn-arrow">▾</span>
+            </button>
+            <div class="toolbar-dropdown" id="dd-stormtrack" style="min-width:180px;">
+              <button class="dropdown-item" id="st-draw-btn" onclick="startStormTrackDraw()">✏️ Draw New Track</button>
+              <button class="dropdown-item" onclick="clearAllStormTracks()">🗑 Clear All Tracks</button>
+              <div class="dropdown-separator"></div>
+              <div id="st-track-list" style="font-size:11px;color:rgba(100,200,255,0.5);padding:4px 6px;letter-spacing:1px;">No tracks</div>
+            </div>
+          </div>
+
+          <!-- Lightning -->
+          <button class="toolbar-btn" id="tb-lightning" onclick="toggleLightning()">
+            <span class="btn-icon">⚡</span>LIGHTNING
+          </button>
+
+          <!-- Highlight Area -->
+          <div style="position:relative;">
+            <button class="toolbar-btn" id="tb-highlight" onclick="toggleDropdown('dd-highlight')">
+              <span class="btn-icon">🔦</span>HIGHLIGHT AREA<span class="btn-arrow">▾</span>
+            </button>
+            <div class="toolbar-dropdown" id="dd-highlight" style="min-width:230px;">
+              <div style="font-size:10px;color:rgba(0,200,255,0.5);letter-spacing:1px;padding:4px 8px 2px;">TINT COLOR</div>
+              <div style="display:flex;align-items:center;gap:8px;padding:4px 8px 6px;">
+                <input type="color" id="hl-color" value="#000000" style="width:32px;height:24px;border:1px solid rgba(0,200,255,0.3);border-radius:3px;background:none;cursor:pointer;padding:1px;">
+                <div style="display:flex;gap:4px;">
+                  <div class="hl-preset" data-color="#000000" style="width:18px;height:18px;border-radius:3px;background:#000;border:1px solid rgba(255,255,255,0.2);cursor:pointer;"></div>
+                  <div class="hl-preset" data-color="#001122" style="width:18px;height:18px;border-radius:3px;background:#001122;border:1px solid rgba(255,255,255,0.2);cursor:pointer;"></div>
+                  <div class="hl-preset" data-color="#1a0000" style="width:18px;height:18px;border-radius:3px;background:#1a0000;border:1px solid rgba(255,255,255,0.2);cursor:pointer;"></div>
+                  <div class="hl-preset" data-color="#111111" style="width:18px;height:18px;border-radius:3px;background:#111;border:1px solid rgba(255,255,255,0.2);cursor:pointer;"></div>
+                </div>
+              </div>
+              <div style="font-size:10px;color:rgba(0,200,255,0.5);letter-spacing:1px;padding:2px 8px;">TINT OPACITY</div>
+              <div style="padding:4px 8px 8px;display:flex;align-items:center;gap:8px;">
+                <input type="range" id="hl-opacity" min="0" max="100" value="70" style="flex:1;accent-color:#00cfff;">
+                <span id="hl-opacity-val" style="font-family:'Bebas Neue',Arial,sans-serif;font-size:12px;color:#00cfff;width:32px;">70%</span>
+              </div>
+              <div class="dropdown-separator"></div>
+              <div style="padding:4px 8px 2px;font-size:10px;color:rgba(0,200,255,0.5);letter-spacing:1px;">TYPE STATE OR COUNTY NAME</div>
+              <div style="padding:2px 6px 4px;position:relative;">
+                <input id="hl-search" type="text" placeholder="e.g. Kansas, Montgomery AL..." autocomplete="off"
+                  style="width:calc(100% - 18px);background:rgba(255,255,255,0.06);border:1px solid rgba(0,200,255,0.2);border-radius:3px;color:#fff;font-family:'Bebas Neue',Arial,sans-serif;font-size:12px;letter-spacing:1px;padding:6px 8px;outline:none;">
+                <div id="hl-search-results" style="max-height:140px;overflow-y:auto;margin-top:2px;"></div>
+                <div id="hl-status" style="font-size:10px;letter-spacing:1px;padding:3px 2px;min-height:14px;color:rgba(0,200,255,0.6);"></div>
+              </div>
+              <div class="dropdown-separator"></div>
+              <div style="padding:4px 8px 2px;font-size:10px;color:rgba(0,200,255,0.5);letter-spacing:1px;">OR PASTE GEOJSON</div>
+              <div style="padding:2px 6px 6px;">
+                <textarea id="hl-geojson-paste" placeholder="Paste GeoJSON here..." rows="3"
+                  style="width:calc(100% - 18px);background:rgba(255,255,255,0.05);border:1px solid rgba(0,200,255,0.2);border-radius:3px;color:#fff;font-family:monospace;font-size:10px;padding:5px 8px;outline:none;resize:vertical;letter-spacing:0;"></textarea>
+                <div id="hl-geojson-status" style="font-size:10px;color:rgba(255,100,100,0.8);letter-spacing:1px;padding:2px 2px;min-height:14px;"></div>
+              </div>
+              <div class="dropdown-separator"></div>
+              <div id="hl-selected-list" style="padding:2px 6px 4px;max-height:80px;overflow-y:auto;font-size:11px;color:rgba(150,220,255,0.7);letter-spacing:1px;">No areas selected</div>
+              <div style="display:flex;gap:4px;padding:4px 6px 6px;">
+                <button class="dropdown-item active" style="flex:1;text-align:center;" onclick="applyHighlight()">APPLY</button>
+                <button class="dropdown-item" style="flex:1;text-align:center;" onclick="clearHighlight()">CLEAR</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Shared Locations -->
+          <button class="toolbar-btn" id="tb-shared-locations" onclick="toggleSharedLocations()" style="background:rgba(0,212,245,0.1);border-color:rgba(0,212,245,0.3);color:#00d4f5;">
+            <span class="btn-icon">📍</span>SHARED LOCATIONS
+          </button>
+
+          <!-- Tower Cams -->
+          <button class="toolbar-btn" id="tb-tower-cams" onclick="toggleTowerCams()">
+            <span class="btn-icon">📷</span>TOWER CAMS
+          </button>
+        </div>
+      </div>
+
+      <!-- SCENES section -->
+      <div class="ctrl-section" id="ctrl-scenes-section">
+        <div class="ctrl-section-label">SAVED SCENES</div>
+        <div id="scene-save-bar">
+          <input id="scene-name-input" type="text" placeholder="Scene name…" maxlength="30">
+          <button id="scene-save-btn" onclick="saveCurrentScene()">💾 SAVE</button>
+        </div>
+        <div id="scenes-list">
+          <div id="scenes-empty">No saved scenes yet</div>
+        </div>
+      </div>
+
+      <!-- COLORS section -->
+      <div class="ctrl-section">
+        <div class="ctrl-section-label">ALERT COLORS</div>
+        <div style="padding:0 10px;">
+          <button id="ctrl-color-toggle" onclick="toggleCtrlColors()">
+            <span>🎨</span> CUSTOMIZE ALERT COLORS <span style="margin-left:auto;font-size:10px;color:rgba(0,200,255,0.4);" id="ctrl-color-arrow">▾</span>
+          </button>
+          <div id="ctrl-color-body">
+            <!-- Color pickers injected by JS -->
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end ctrl-body -->
+  </div><!-- end ctrl-panel -->
 
   <!-- ===== STORM TRACK DRAW BANNER ===== -->
   <div id="stormtrack-draw-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9000;background:linear-gradient(90deg,#0044aa,#0066cc);color:#fff;font-family:'Bebas Neue',Arial,sans-serif;font-size:15px;letter-spacing:3px;text-align:center;padding:8px 16px;box-shadow:0 2px 12px rgba(0,0,0,0.5);pointer-events:none;">
@@ -2342,12 +2616,7 @@
     </div>
   </div>
 
-  <!-- Add menu button and color menu -->
-  <button class="menu-button">Customize Colors</button>
-  <div class="color-menu">
-    <h3>Alert Colors</h3>
-    <!-- Color pickers will be added here by JavaScript -->
-  </div>
+  <!-- color menu now lives inside ctrl-panel -->
 
   <!-- Add MapTiler SDK JS -->
   <script src="https://cdn.maptiler.com/maptiler-sdk-js/v3.8.0/maptiler-sdk.umd.min.js"></script>
@@ -2728,14 +2997,11 @@ const defaultColors = {
 // Load saved colors or use defaults
 let alertColors = JSON.parse(localStorage.getItem('alertColors')) || {...defaultColors};
 
-// Create color picker menu HTML
-document.querySelector('.color-menu').innerHTML = `
-    <h3>Alert Colors</h3>
-    <div class="color-menu-section">
-        <h4>NWS Alert Colors</h4>
+// Create color picker menu HTML inside the control panel
+document.getElementById('ctrl-color-body').innerHTML = `
+    <div class="color-menu-section" style="margin-bottom:10px;">
+        <div style="font-family:'Bebas Neue',Arial,sans-serif;font-size:10px;letter-spacing:2px;color:rgba(0,200,255,0.5);padding:6px 0 3px;border-bottom:1px solid rgba(0,100,200,0.1);margin-bottom:4px;">NWS WARNINGS</div>
         ${Object.entries(defaultColors)
-            // FIX: Only include types ending with 'Warning' or containing 'Statement'
-            // AND explicitly include Tornado Emergency and Flash Flood Emergency
             .filter(([key]) =>
                 key.toLowerCase().includes('warning') ||
                 key.toLowerCase().includes('statement') ||
@@ -2752,10 +3018,9 @@ document.querySelector('.color-menu').innerHTML = `
                 </div>
             `).join('')}
     </div>
-    <div class="color-menu-section">
-        <h4>Zone Alert Colors</h4>
+    <div class="color-menu-section" style="margin-bottom:10px;">
+        <div style="font-family:'Bebas Neue',Arial,sans-serif;font-size:10px;letter-spacing:2px;color:rgba(0,200,255,0.5);padding:6px 0 3px;border-bottom:1px solid rgba(0,100,200,0.1);margin-bottom:4px;">WATCHES & ADVISORIES</div>
         ${Object.entries(defaultColors)
-            // FIX: Only include types ending with 'Watch' or 'Advisory'
             .filter(([key]) => key.toLowerCase().includes('watch') || key.toLowerCase().includes('advisory'))
             .map(([alertType, defaultColor]) => `
                 <div class="color-picker-row">
@@ -2766,10 +3031,9 @@ document.querySelector('.color-menu').innerHTML = `
                            value="${alertColors[alertType] || defaultColor}">
                 </div>
             `).join('')}
-
     </div>
-    <div class="color-menu-section">
-        <h4>ECCC Alert Colors</h4>
+    <div class="color-menu-section" style="margin-bottom:10px;">
+        <div style="font-family:'Bebas Neue',Arial,sans-serif;font-size:10px;letter-spacing:2px;color:rgba(0,200,255,0.5);padding:6px 0 3px;border-bottom:1px solid rgba(0,100,200,0.1);margin-bottom:4px;">ECCC ALERTS</div>
         ${Object.entries(defaultColors)
             .filter(([key]) => key.includes('(ECCC)'))
             .map(([alertType, defaultColor]) => `
@@ -2782,7 +3046,7 @@ document.querySelector('.color-menu').innerHTML = `
                 </div>
             `).join('')}
     </div>
-    <button class="reset-colors-btn">Reset to Default Colors</button>
+    <button id="ctrl-color-reset" style="margin-top:8px;padding:6px 10px;background:rgba(255,255,255,0.05);border:1px solid rgba(0,150,255,0.2);color:#7ac8ff;border-radius:4px;cursor:pointer;font-family:'Bebas Neue',Arial,sans-serif;font-size:11px;width:100%;letter-spacing:1px;">↺ Reset to Default Colors</button>
 `;
 
 // Add color picker change handlers
@@ -2805,7 +3069,7 @@ document.querySelectorAll('.color-picker-input').forEach(input => {
 });
 
 // Add reset button handler
-document.querySelector('.reset-colors-btn').addEventListener('click', () => {
+document.getElementById('ctrl-color-reset').addEventListener('click', () => {
     alertColors = {...defaultColors};
     localStorage.setItem('alertColors', JSON.stringify(alertColors));
     
@@ -3119,6 +3383,15 @@ const IEM_N = 15;
 
     // Legacy: toggleRainviewer now just reloads IEM
     window.toggleRainviewer = function() {
+      // Clear any site-specific radar layers first
+      window._activeSiteProduct = null;
+      if (typeof activeL3 !== 'undefined') activeL3 = null;
+      ['nexrad-l2-fill','nexrad-l2','nexrad-l3'].forEach(id => {
+        if (map.getLayer(id)) { try { map.removeLayer(id); } catch(e){} }
+      });
+      ['nexrad-l2','nexrad-l3'].forEach(id => {
+        if (map.getSource(id)) { try { map.removeSource(id); } catch(e){} }
+      });
       fetchIEMFrames();
       const btn = document.getElementById('tb-radar');
       if (btn) btn.classList.remove('active');
@@ -4169,62 +4442,7 @@ const IEM_N = 15;
       }
     });
 
-    // Toggle menu handler
-document.querySelector('.menu-button').addEventListener('click', function(e) {
-    e.stopPropagation();
-    const menu = document.querySelector('.color-menu');
-    menu.classList.toggle('visible');
-});
-
-// Close menu when clicking outside
-document.addEventListener('click', function(e) {
-    const menu = document.querySelector('.color-menu');
-    const menuButton = document.querySelector('.menu-button');
-    if (!menu.contains(e.target) && e.target !== menuButton) {
-        menu.classList.remove('visible');
-    }
-});
-
-// Update color menu styles
-const styleSheet = document.styleSheets[0];
-styleSheet.insertRule(`
-    .color-menu {
-        position: fixed;
-        top: 60px;
-        left: 170px;
-        z-index: 2000;
-        background: rgba(0,24,55,0.95);
-        border: 1px solid rgba(0,150,255,0.2);
-        border-radius: 8px;
-        padding: 15px;
-        display: none;
-        max-height: 80vh;
-        overflow-y: auto;
-       
-              
-        width: 300px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    }
-`, styleSheet.cssRules.length);
-
-styleSheet.insertRule(`
-    .color-menu.visible {
-        display: block !important;
-    }
-`, styleSheet.cssRules.length);
-
-// Make color picker inputs more visible
-styleSheet.insertRule(`
-    .color-picker-input {
-        width: 60px;
-        height: 25px;
-        padding: 0;
-        border: 2px solid rgba(0,150,255,0.3);
-        border-radius: 4px;
-        background: none;
-        cursor: pointer;
-    }
-`, styleSheet.cssRules.length);
+    // color toggle now handled by toggleCtrlColors() in the control panel
   })();
     </script>
     <!-- BEGIN: Zone Watches Polygons Script -->
@@ -5032,17 +5250,17 @@ function showEyeWatchDescription(meta, color = "#00FFFF", title = "Eye Watch") {
 // ============================================================
 //  TOOLBAR DROPDOWN TOGGLE
 // ============================================================
+// ============================================================
+//  TOOLBAR DROPDOWN TOGGLE (inside ctrl-panel)
+// ============================================================
 window.toggleDropdown = function(id) {
   const dd = document.getElementById(id);
+  if (!dd) return;
   const wasOpen = dd.classList.contains('open');
   document.querySelectorAll('.toolbar-dropdown').forEach(d => d.classList.remove('open'));
   if (!wasOpen) dd.classList.add('open');
 };
-document.addEventListener('click', function(e) {
-  if (!e.target.closest('#layers-toolbar')) {
-    document.querySelectorAll('.toolbar-dropdown').forEach(d => d.classList.remove('open'));
-  }
-});
+// Don't auto-close dropdowns when clicking inside ctrl-panel (they're part of it)
 
 // ============================================================
 //  NEXRAD LEVEL 2 (Iowa State mesonet tiles)
@@ -5052,9 +5270,12 @@ window.loadNexradL2 = function(site, product) {
   const btn = document.getElementById('tb-radar');
   btn.classList.add('active');
   showLoading('Loading ' + site + ' ' + product + '…');
+  activeL3 = null;
+  window._activeSiteProduct = null;
 
   document.getElementById('lrb-title').textContent = 'LOCAL RADAR';
   document.getElementById('lrb-station-code').textContent = site;
+  document.getElementById('lrb-tilt').textContent = '• ' + (product === 'N0Q' ? '0.5°' : product);
 
   // Remove existing L2 layer
   ['nexrad-l2-fill','nexrad-l2'].forEach(id => {
@@ -5119,10 +5340,18 @@ window.toggleNexradL3 = function(key, product) {
 
   // Use IEM national mosaic tile service
   const productMap = {
-    'base-ref': 'N0B', 'comp-ref': 'NCR', 'velocity': 'N0S', 'precip': 'N1P'
+    'base-ref': 'N0Q', 'comp-ref': 'NCR', 'velocity': 'N0U', 'precip': 'N1P'
   };
   const prod = productMap[key] || 'N0Q';
-  const tileUrl = `https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913/{z}/{x}/{y}.png`;
+  // Map product codes to available IEM national composite layer names
+  const iemCompositeLayer = {
+    'N0Q': 'nexrad-n0q-900913',
+    'NCR': 'nexrad-n0q-900913',
+    'N0U': 'nexrad-n0q-900913',
+    'N1P': 'nexrad-n0q-900913',
+  };
+  const layerName = iemCompositeLayer[prod] || 'nexrad-n0q-900913';
+  const tileUrl = `https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/${layerName}/{z}/{x}/{y}.png`;
   try {
     map.addSource('nexrad-l3', { type:'raster', tiles:[tileUrl], tileSize:256, attribution:'IEM/NWS' });
     const sym = (map.getStyle().layers||[]).find(l=>l.type==='symbol');
@@ -5139,11 +5368,15 @@ window.toggleNexradL3 = function(key, product) {
 window.toggleRainviewer = function() {
   // Just ensure the standard RainViewer layer is visible
   activeL3 = null;
+  window._activeSiteProduct = null;
   ['nexrad-l3','nexrad-l2'].forEach(id => { if(map.getLayer(id)){try{map.removeLayer(id);}catch(e){}} });
   ['nexrad-l3','nexrad-l2'].forEach(id => { if(map.getSource(id)){try{map.removeSource(id);}catch(e){}} });
   document.querySelectorAll('#dd-radar .dropdown-item').forEach(b=>b.classList.remove('active'));
   document.getElementById('l3-rainviewer').classList.add('active');
   document.getElementById('tb-radar').classList.remove('active');
+  document.getElementById('lrb-title').textContent = 'NATIONAL RADAR';
+  document.getElementById('lrb-station-code').textContent = 'MRMS';
+  document.getElementById('lrb-tilt').textContent = '• COMP';
   // re-fetch rainviewer
   if (window.rainviewerTime) {
     if (typeof updateRadarLayer === 'function') updateRadarLayer(window.rainviewerTime);
@@ -5151,79 +5384,341 @@ window.toggleRainviewer = function() {
 };
 
 // ============================================================
-//  SPC OUTLOOK LAYER
+//  NEXRAD SITE PRODUCT LOADER  (Py-ART backend + IEM fallback)
+//
+//  Level-2 products (reflectivity, velocity, dual-pol) are fetched
+//  from the local Py-ART server at http://localhost:5000 which reads
+//  NEXRAD Level-2 files directly from AWS S3.
+//
+//  Level-3 products (echo tops, VIL, precip accum, HCA) are not in
+//  Level-2 archives, so they fall back to IEM ridge tiles.
+//
+//  Start the server:  python3 server.py
 // ============================================================
-let spcActive = false;
-window.toggleSPCLayer = async function() {
-  const btn = document.getElementById('tb-spc');
-  if (spcActive) {
-    ['spc-day1-fill','spc-day1-outline'].forEach(id => { if(map.getLayer(id)) {try{map.removeLayer(id);}catch(e){}} });
-    if(map.getSource('spc-day1')){try{map.removeSource('spc-day1');}catch(e){}}
-    spcActive = false;
-    btn.classList.remove('active');
-    document.getElementById('spc-info-card').style.display = 'none';
+window._activeSiteProduct = null;
+const PYART_SERVER = 'http://localhost:5000';
+
+// Products the Py-ART server can handle (IEM code → server field name)
+const PYART_PRODUCTS = {
+  'N0Q': 'reflectivity',
+  'N0B': 'corrected_reflectivity',
+  'NCR': 'max_reflectivity',
+  'N0U': 'velocity',
+  'N0S': 'storm_relative_velocity',
+  'NRO': 'velocity',
+  'N0C': 'cross_correlation_ratio',
+  'N0K': 'differential_phase',
+  'N0X': 'differential_reflectivity',
+  'NSW': 'spectrum_width',
+};
+
+// Helpers to clean up map layers/sources
+function _clearRadarLayers() {
+  ['nexrad-l2-fill','nexrad-l2','nexrad-l3'].forEach(id => {
+    if (map.getLayer(id))  { try { map.removeLayer(id);  } catch(e){} }
+  });
+  ['nexrad-l2','nexrad-l3'].forEach(id => {
+    if (map.getSource(id)) { try { map.removeSource(id); } catch(e){} }
+  });
+}
+
+function _insertLayer(sourceId, sourceSpec, layerSpec) {
+  const allLyrs = map.getStyle().layers || [];
+  const insertBefore = (
+    allLyrs.find(l => l.id === 'nws-alert-polygons-outline-black')?.id ||
+    allLyrs.find(l => l.id === 'zone-alerts-outline')?.id ||
+    allLyrs.find(l => l.type === 'symbol')?.id ||
+    null
+  );
+  map.addSource(sourceId, sourceSpec);
+  map.addLayer({ ...layerSpec, source: sourceId }, insertBefore);
+}
+
+function _setActiveBtn(product) {
+  document.querySelectorAll('#dd-radar .dropdown-item').forEach(b => b.classList.remove('active'));
+  const btn = document.querySelector(`#dd-radar [data-product="${product}"]`);
+  if (btn) btn.classList.add('active');
+}
+
+// ── IEM ridge tile fallback (Level-3 products or when server is offline) ──────
+function _loadIEMTile(site, product, label) {
+  const tileUrl = `https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/ridge::${site}::${product}::0/{z}/{x}/{y}.png`;
+  try {
+    _insertLayer('nexrad-l2',
+      { type:'raster', tiles:[tileUrl], tileSize:256, attribution:'© IEM / NWS' },
+      { id:'nexrad-l2', type:'raster', paint:{'raster-opacity':0.9} }
+    );
+    document.getElementById('lrb-tilt').textContent = '• ' + label + ' (IEM)';
+  } catch(err) { console.warn('IEM tile error:', err); }
+}
+
+// ── Py-ART image source (Level-2 products from local server) ──────────────────
+async function _loadPyARTImage(site, product, field, label, sweep=0) {
+  const url = `${PYART_SERVER}/api/radar?site=${site}&product=${product}&field=${field}&sweep=${sweep}`;
+  const resp = await fetch(url, { signal: AbortSignal.timeout(45000) });
+  if (!resp.ok) throw new Error(`Server ${resp.status}: ${await resp.text()}`);
+  const data = await resp.json();
+  if (data.error) throw new Error(data.error);
+
+  const b = data.bounds;
+  const imgUrl = `data:image/png;base64,${data.image}`;
+
+  _insertLayer('nexrad-l2',
+    {
+      type: 'image',
+      url:  imgUrl,
+      coordinates: [
+        [b.west, b.north],
+        [b.east, b.north],
+        [b.east, b.south],
+        [b.west, b.south],
+      ]
+    },
+    { id:'nexrad-l2', type:'raster', paint:{'raster-opacity':0.9} }
+  );
+
+  // Update radar bar with scan time
+  if (data.time) {
+    const t = new Date(data.time);
+    const timeStr = t.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',timeZoneName:'short'});
+    document.getElementById('lrb-tilt').textContent = '• ' + (data.label || label) + ' ' + timeStr;
+  }
+  return data;
+}
+
+// ── Main loader ────────────────────────────────────────────────────────────────
+window.loadSiteProduct = async function(product, label, sweep=0) {
+  const station = window._lrbCurrentStation;
+  const site    = station ? station.id : 'KIWX';
+
+  // Toggle OFF if same product + site is already active
+  if (window._activeSiteProduct === product + site) {
+    window._activeSiteProduct = null;
+    toggleRainviewer();
     return;
   }
-  showLoading('Loading SPC Outlook…');
-  btn.classList.add('active');
-  spcActive = true;
+  window._activeSiteProduct = product + site;
 
-  // SPC Day 1 Categorical Outlook via their public GeoJSON endpoint
-  const url = 'https://www.spc.noaa.gov/products/outlook/day1otlk_cat.geojson';
-  try {
-    const res = await fetch(url);
-    const gj = await res.json();
+  showLoading('Loading ' + site + ' ' + label + '…');
+  _clearRadarLayers();
+  activeL3 = null;
 
-    // Color map for SPC categories
-    const catColors = {
-      'TSTM': '#00aa00', 'MRGL': '#00aa00', 'SLGT': '#ffff00',
-      'ENH': '#ff8c00', 'MDT': '#ff0000', 'HIGH': '#ff00ff', 'CRIT':'#ff4400'
-    };
+  document.getElementById('lrb-title').textContent        = 'LOCAL RADAR';
+  document.getElementById('lrb-station-code').textContent = site;
+  document.getElementById('lrb-tilt').textContent         = '• ' + label;
+  document.getElementById('tb-radar').classList.add('active');
 
-    // Assign colors to features
-    gj.features = (gj.features||[]).map(f => {
-      const dn = f.properties.LABEL || f.properties.dn || '';
-      f.properties._color = catColors[dn] || catColors[f.properties.LABEL2] || '#888888';
-      return f;
-    });
+  const pyartField = PYART_PRODUCTS[product];
 
-    if(map.getSource('spc-day1')) { map.getSource('spc-day1').setData(gj); }
-    else {
-      map.addSource('spc-day1', {type:'geojson', data: gj});
-      const sym = (map.getStyle().layers||[]).find(l=>l.type==='symbol');
-      map.addLayer({ id:'spc-day1-fill', type:'fill', source:'spc-day1', paint:{ 'fill-color':['get','_color'], 'fill-opacity':0.25 } }, sym?sym.id:undefined);
-      map.addLayer({ id:'spc-day1-outline', type:'line', source:'spc-day1', paint:{ 'line-color':['get','_color'], 'line-width':2 } }, sym?sym.id:undefined);
-
-      // Click handler
-      map.on('click','spc-day1-fill', function(e) {
-        if(!e.features||!e.features.length) return;
-        const p = e.features[0].properties;
-        const label = p.LABEL || p.LABEL2 || p.dn || '?';
-        const desc = p.LABEL2 || label;
-        const spcLabels = {
-          'TSTM':'General Thunderstorm Area – Low organized severe potential.',
-          'MRGL':'Marginal Risk – Isolated severe storms possible.',
-          'SLGT':'Slight Risk – Scattered severe storms expected.',
-          'ENH':'Enhanced Risk – Numerous severe storms expected.',
-          'MDT':'Moderate Risk – Widespread severe storms, significant threat.',
-          'HIGH':'High Risk – Particularly dangerous situation for severe weather.',
-          'CRIT':'Critical Fire Weather Conditions.'
-        };
-        const spcCard = document.getElementById('spc-info-card');
-        document.getElementById('spc-info-body').innerHTML = `
-          <b style="font-size:20px;color:${p._color||'#ff8800'}">${desc}</b><br>
-          <span style="color:rgba(255,200,150,0.8)">${spcLabels[label] || 'SPC Outlook region.'}</span><br><br>
-          <span>Click area for local severe potential details.</span>
-        `;
-        spcCard.style.display = 'block';
-        map.getCanvas().style.cursor = '';
-      });
-      map.on('mouseenter','spc-day1-fill',()=>{ map.getCanvas().style.cursor='pointer'; });
-      map.on('mouseleave','spc-day1-fill',()=>{ map.getCanvas().style.cursor=''; });
+  if (pyartField) {
+    // ── Try Py-ART server ──────────────────────────────────────────────────
+    try {
+      await _loadPyARTImage(site, product, pyartField, label, sweep);
+      _setActiveBtn(product);
+      hideLoading();
+      return;
+    } catch(err) {
+      console.warn(`Py-ART server unavailable (${err.message}), falling back to IEM tiles`);
+      // Clean up if a partial source was added
+      _clearRadarLayers();
     }
-  } catch(err) { console.error('SPC fetch error', err); btn.classList.remove('active'); spcActive=false; }
+  }
+
+  // ── IEM ridge tiles (Level-3 products or server offline) ──────────────────
+  _loadIEMTile(site, product, label);
+  _setActiveBtn(product);
   hideLoading();
 };
+
+// ── Tilt/sweep cycling when the radar bar tilt label is clicked ───────────────
+// After the first Py-ART render, clicking the tilt label increments the sweep.
+window._activeSweep = 0;
+(function() {
+  // We hook into the existing lrb-tilt click listener by wrapping it.
+  const origHandler = document.getElementById('lrb-tilt')?._pyartHandler;
+  document.getElementById('lrb-tilt')?.addEventListener('click', async function(e) {
+    e.stopPropagation();
+    const station = window._lrbCurrentStation;
+    if (!station) return;
+
+    // Find the currently-active dropdown product
+    const activeBtn = document.querySelector('#dd-radar .dropdown-item.active:not(#l3-rainviewer)');
+    const product   = activeBtn?.dataset?.product;
+    const label     = document.getElementById('lrb-tilt')
+                       .textContent.replace('• ','').split(' ')[0];
+    const pyartField = product ? PYART_PRODUCTS[product] : null;
+
+    if (pyartField) {
+      window._activeSweep = (window._activeSweep + 1) % 9; // max 9 tilts
+      window._activeSiteProduct = null;  // force reload
+      await window.loadSiteProduct(product, label, window._activeSweep);
+    }
+  }, true); // capture phase to run before existing handlers
+})();
+
+// ============================================================
+//  SPC OUTLOOK LAYER — multi-day, multi-hazard, CORS-proxied
+// ============================================================
+const SPC_PROXY = url => 'https://corsproxy.io/?' + encodeURIComponent(url);
+
+const SPC_URLS = {
+  'day1-cat':  'https://www.spc.noaa.gov/products/outlook/day1otlk_cat.geojson',
+  'day2-cat':  'https://www.spc.noaa.gov/products/outlook/day2otlk_cat.geojson',
+  'day3-cat':  'https://www.spc.noaa.gov/products/outlook/day3otlk.geojson',
+  'day1-torn': 'https://www.spc.noaa.gov/products/outlook/day1otlk_torn.geojson',
+  'day1-wind': 'https://www.spc.noaa.gov/products/outlook/day1otlk_wind.geojson',
+  'day1-hail': 'https://www.spc.noaa.gov/products/outlook/day1otlk_hail.geojson',
+  'day2-torn': 'https://www.spc.noaa.gov/products/outlook/day2otlk_torn.geojson',
+  'day2-wind': 'https://www.spc.noaa.gov/products/outlook/day2otlk_wind.geojson',
+  'day2-hail': 'https://www.spc.noaa.gov/products/outlook/day2otlk_hail.geojson',
+};
+
+const SPC_CAT_COLORS = {
+  'TSTM': '#006600', 'MRGL': '#00cc44', 'SLGT': '#ffee00',
+  'ENH':  '#ff8c00', 'MDT':  '#ff2200', 'HIGH': '#ff00ff',
+  'CRIT': '#ff4400',
+};
+const SPC_PROB_COLORS = {
+  '2':   '#006600', '5':   '#009900', '10':  '#99cc00',
+  '15':  '#ffff00', '30':  '#ffaa00', '45':  '#ff5500',
+  '60':  '#ff0000', 'SIGN':'#ff00ff',
+};
+const SPC_LABELS = {
+  'TSTM':'General Thunderstorm Area',
+  'MRGL':'Marginal Risk – Isolated severe possible',
+  'SLGT':'Slight Risk – Scattered severe expected',
+  'ENH': 'Enhanced Risk – Numerous severe expected',
+  'MDT': 'Moderate Risk – Widespread severe, significant threat',
+  'HIGH':'High Risk – Particularly dangerous situation',
+  'CRIT':'Critical Fire Weather Conditions',
+};
+
+let spcActive = null; // stores the key e.g. 'day1-cat'
+
+function spcColor(props, type) {
+  const label = (props.LABEL || props.LABEL2 || props.dn || props.DN || '').toString().toUpperCase().trim();
+  if (type === 'cat') return SPC_CAT_COLORS[label] || '#888888';
+  // probability type
+  const pct = (props.LABEL || props.stroke || '').toString().replace('%','').trim();
+  return SPC_PROB_COLORS[pct] || SPC_PROB_COLORS[label] || '#888888';
+}
+
+window.loadSPCOutlook = async function(day, type) {
+  const key = `${day}-${type}`;
+  document.querySelectorAll('[id^="spc-"]').forEach(b => b.classList.remove('active'));
+  const activeBtn = document.getElementById(`spc-${day.replace('day','d')}-${type}`);
+  if (activeBtn) activeBtn.classList.add('active');
+
+  // If clicking the same active product → clear it
+  if (spcActive === key) {
+    clearSPCOutlook();
+    return;
+  }
+
+  clearSPCOutlook(false);
+  spcActive = key;
+  document.getElementById('tb-spc').classList.add('active');
+  document.querySelectorAll('.toolbar-dropdown').forEach(d => d.classList.remove('open'));
+
+  const rawUrl = SPC_URLS[key];
+  if (!rawUrl) { showLoading('Unknown SPC product'); setTimeout(hideLoading, 2000); return; }
+
+  showLoading(`Loading SPC ${day.toUpperCase()} ${type.toUpperCase()}…`);
+
+  let gj = null;
+  // Try direct first, then via proxy
+  for (const url of [rawUrl, SPC_PROXY(rawUrl)]) {
+    try {
+      const res = await fetch(url, { cache: 'no-cache' });
+      if (!res.ok) continue;
+      const text = await res.text();
+      if (!text.trim().startsWith('{')) continue;
+      gj = JSON.parse(text);
+      if (gj && gj.features) break;
+    } catch(e) { continue; }
+  }
+
+  if (!gj || !gj.features || !gj.features.length) {
+    showLoading('No SPC data available for this product');
+    setTimeout(hideLoading, 3000);
+    document.getElementById('tb-spc').classList.remove('active');
+    spcActive = null;
+    return;
+  }
+
+  // Assign colors
+  gj.features = gj.features.map(f => {
+    f.properties._color = spcColor(f.properties, type);
+    return f;
+  });
+
+  // Remove old layers/source
+  ['spc-day1-fill','spc-day1-outline'].forEach(id => { if(map.getLayer(id)){try{map.removeLayer(id);}catch(e){}} });
+  if(map.getSource('spc-day1')){try{map.removeSource('spc-day1');}catch(e){}}
+
+  const sym = (map.getStyle().layers||[]).find(l=>l.type==='symbol');
+  map.addSource('spc-day1', {type:'geojson', data: gj});
+  map.addLayer({ id:'spc-day1-fill', type:'fill', source:'spc-day1', paint:{ 'fill-color':['get','_color'], 'fill-opacity': type==='cat' ? 0.28 : 0.32 } }, sym?.id);
+  map.addLayer({ id:'spc-day1-outline', type:'line', source:'spc-day1', paint:{ 'line-color':['get','_color'], 'line-width': 1.8 } }, sym?.id);
+
+  // Click handler
+  map.off('click','spc-day1-fill');
+  map.on('click','spc-day1-fill', function(e) {
+    if(!e.features?.length) return;
+    const p = e.features[0].properties;
+    const label = (p.LABEL || p.LABEL2 || p.dn || '?').toString().toUpperCase();
+    const color = p._color || '#ff8800';
+    const dayStr = day === 'day1' ? 'Day 1' : day === 'day2' ? 'Day 2' : 'Day 3';
+    const typeStr = type === 'cat' ? 'Categorical' : type === 'torn' ? 'Tornado Prob' : type === 'wind' ? 'Wind Prob' : 'Hail Prob';
+    const description = SPC_LABELS[label] || (type !== 'cat' ? `${label}% probability` : 'SPC Outlook region');
+    const spcCard = document.getElementById('spc-info-card');
+    document.getElementById('spc-info-body').innerHTML = `
+      <div style="font-size:11px;letter-spacing:2px;color:rgba(255,200,150,0.6);margin-bottom:4px;">SPC ${dayStr.toUpperCase()} ${typeStr.toUpperCase()}</div>
+      <div style="font-size:22px;font-weight:bold;color:${color};letter-spacing:1px;margin-bottom:6px;">${label}</div>
+      <div style="color:rgba(255,210,170,0.9);font-size:12px;line-height:1.7;">${description}</div>
+      <div style="margin-top:10px;"><a href="https://www.spc.noaa.gov/products/outlook/" target="_blank" style="color:${color};font-size:11px;letter-spacing:1px;text-decoration:none;">🔗 VIEW ON SPC.NOAA.GOV →</a></div>
+    `;
+    spcCard.style.display = 'block';
+    spcCard.style.borderLeftColor = color;
+    spcCard.style.boxShadow = `0 4px 24px rgba(0,0,0,0.7), 0 0 0 1px ${color}44`;
+  });
+  map.on('mouseenter','spc-day1-fill',()=>{ map.getCanvas().style.cursor='pointer'; });
+  map.on('mouseleave','spc-day1-fill',()=>{ map.getCanvas().style.cursor=''; });
+
+  // Show info card with summary
+  const topFeature = gj.features[gj.features.length - 1]; // highest risk is usually last
+  const topLabel = (topFeature?.properties?.LABEL || '').toString().toUpperCase();
+  const topColor = topFeature?.properties?._color || '#ff8800';
+  const dayStr2 = day === 'day1' ? 'Day 1' : day === 'day2' ? 'Day 2' : 'Day 3';
+  const typeStr2 = type === 'cat' ? 'Categorical' : type === 'torn' ? 'Tornado Probability' : type === 'wind' ? 'Wind Probability' : 'Hail Probability';
+  const spcCard = document.getElementById('spc-info-card');
+  document.getElementById('spc-info-body').innerHTML = `
+    <div style="font-size:11px;letter-spacing:2px;color:rgba(255,200,150,0.6);margin-bottom:4px;">SPC ${dayStr2.toUpperCase()} ${typeStr2.toUpperCase()}</div>
+    <div style="font-size:18px;font-weight:bold;color:${topColor};margin-bottom:4px;">Max: ${topLabel || '—'}</div>
+    <div style="color:rgba(255,210,170,0.7);font-size:11px;line-height:1.6;">${SPC_LABELS[topLabel] || 'Click a region for details.'}</div>
+    <div style="margin-top:8px;font-size:10px;color:rgba(255,200,150,0.4);">Loaded ${gj.features.length} feature${gj.features.length!==1?'s':''}. Click map for details.</div>
+    <div style="margin-top:8px;"><a href="https://www.spc.noaa.gov/products/outlook/" target="_blank" style="color:${topColor};font-size:11px;letter-spacing:1px;text-decoration:none;">🔗 VIEW ON SPC.NOAA.GOV →</a></div>
+  `;
+  spcCard.style.display = 'block';
+  spcCard.style.borderLeftColor = topColor;
+  spcCard.style.boxShadow = `0 4px 24px rgba(0,0,0,0.7), 0 0 0 1px ${topColor}44`;
+
+  hideLoading();
+};
+
+window.clearSPCOutlook = function(resetBtn = true) {
+  ['spc-day1-fill','spc-day1-outline'].forEach(id => { if(map.getLayer(id)){try{map.removeLayer(id);}catch(e){}} });
+  if(map.getSource('spc-day1')){try{map.removeSource('spc-day1');}catch(e){}}
+  spcActive = null;
+  if (resetBtn) {
+    document.getElementById('tb-spc').classList.remove('active');
+    document.querySelectorAll('[id^="spc-d"]').forEach(b => b.classList.remove('active'));
+    document.getElementById('spc-info-card').style.display = 'none';
+  }
+};
+
+// Legacy toggle still used if old code calls it
+window.toggleSPCLayer = function() { loadSPCOutlook('day1','cat'); };
 
 document.getElementById('spc-info-close').addEventListener('click', ()=>{
   window.playClickSound();
@@ -7200,6 +7695,7 @@ document.addEventListener('click', function(e) {
 
   function setStation(s) {
     currentStation = s;
+    window._lrbCurrentStation = s;  // expose globally for loadSiteProduct
     document.getElementById('lrb-station-code').textContent = s.id;
     // Switch the RainViewer / IEM tile to this station
     switchToStation(s);
@@ -7378,7 +7874,14 @@ document.addEventListener('click', function(e) {
   });
 
   function switchToStation(s) {
-    if (typeof loadNexradL2 === 'function') {
+    // If a site product is currently active, reload it for the new station
+    const activeBtn = document.querySelector('#dd-radar .dropdown-item.active:not(#l3-rainviewer)');
+    if (activeBtn && activeBtn.dataset.product && typeof loadSiteProduct === 'function') {
+      const prod  = activeBtn.dataset.product;
+      const label = document.getElementById('lrb-tilt')?.textContent.replace('• ','') || prod;
+      window._activeSiteProduct = null; // force reload
+      loadSiteProduct(prod, label);
+    } else if (typeof loadNexradL2 === 'function') {
       loadNexradL2(s.id);
     }
     // Highlight selected dot on map
@@ -7485,10 +7988,9 @@ document.addEventListener('click', function(e) {
       const s = STATIONS.find(st => st.id === props.id);
       if (s) {
         setStation(s);
-        // Update radar bar
+        // Update radar bar (switchToStation handles actual tile load)
         document.getElementById('lrb-title').textContent = 'LOCAL RADAR';
         document.getElementById('lrb-station-code').textContent = s.id;
-        document.getElementById('lrb-tilt').textContent = '• 0.5°';
       }
     });
     map.on('mouseenter', 'nexrad-sites-dot',     () => map.getCanvas().style.cursor = 'pointer');
@@ -7540,15 +8042,21 @@ document.addEventListener('click', function(e) {
     });
   };
 
-  // ── Tilt cycling with actual IEM product codes ──────────────
+  // ── Tilt cycling — reflectivity tilts only (quick cycle on the bar)
   const TILT_PRODUCTS = [
-    { label:'0.5°', product:'N0Q' },
-    { label:'1.5°', product:'N1Q' },
-    { label:'2.4°', product:'N2Q' },
-    { label:'3.4°', product:'N3Q' },
-    { label:'VEL',  product:'N0U' },  // base velocity
-    { label:'ZDR',  product:'N0X' },  // differential reflectivity
-    { label:'CC',   product:'N0C' },  // correlation coefficient
+    { label:'0.5° REFL', product:'N0Q' },
+    { label:'1.5° REFL', product:'N0Q' },
+    { label:'2.4° REFL', product:'N0Q' },
+    { label:'3.4° REFL', product:'N0Q' },
+    { label:'VEL',       product:'N0U' },
+    { label:'SRV',       product:'N0S' },
+    { label:'ZDR',       product:'N0X' },
+    { label:'CC',        product:'N0C' },
+    { label:'KDP',       product:'N0K' },
+    { label:'HCA',       product:'N0H' },
+    { label:'SW',        product:'NSW' },
+    { label:'EET',       product:'EET' },
+    { label:'VIL',       product:'DVL' },
   ];
   let tiltIdx = 0;
   document.getElementById('lrb-tilt').style.cursor = 'pointer';
@@ -7556,18 +8064,11 @@ document.addEventListener('click', function(e) {
     e.stopPropagation();
     tiltIdx = (tiltIdx + 1) % TILT_PRODUCTS.length;
     const tp = TILT_PRODUCTS[tiltIdx];
-    this.textContent = `• ${tp.label}`;
-    // Reload L2 with the new product
-    if (currentStation) {
-      const site = currentStation.id;
-      ['nexrad-l2-fill','nexrad-l2'].forEach(id => { if(map.getLayer(id)) try{map.removeLayer(id);}catch(e){} });
-      if (map.getSource('nexrad-l2')) try{map.removeSource('nexrad-l2');}catch(e){}
-      const tileUrl = `https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/ridge::${site}::${tp.product}::0/{z}/{x}/{y}.png`;
-      try {
-        map.addSource('nexrad-l2', { type:'raster', tiles:[tileUrl], tileSize:256, attribution:'IEM/NWS' });
-        const sym = (map.getStyle().layers||[]).find(l=>l.type==='symbol');
-        map.addLayer({ id:'nexrad-l2', type:'raster', source:'nexrad-l2', paint:{'raster-opacity':0.9} }, sym?sym.id:undefined);
-      } catch(err) { console.warn('L2 tilt error', err); }
+    // For reflectivity tilts, pass the sweep index; others stay at sweep 0
+    const sweepIdx = (tp.product === 'N0Q') ? Math.min(tiltIdx, 3) : 0;
+    if (typeof loadSiteProduct === 'function') {
+      window._activeSiteProduct = null; // force reload
+      loadSiteProduct(tp.product, tp.label, sweepIdx);
     }
   });
   function buildPickerList(filter) {
@@ -9807,5 +10308,163 @@ window.flyToAlertWithFlash = function(feature) {
   };
 
 })();
+
+// ============================================================
+//  CONTROL PANEL (sidebar toggle)
+// ============================================================
+window.toggleControlPanel = function() {
+  const panel = document.getElementById('ctrl-panel');
+  const backdrop = document.getElementById('ctrl-backdrop');
+  if (panel.classList.contains('open')) {
+    closeControlPanel();
+  } else {
+    panel.classList.add('open');
+    backdrop.classList.add('open');
+  }
+};
+window.closeControlPanel = function() {
+  document.getElementById('ctrl-panel').classList.remove('open');
+  document.getElementById('ctrl-backdrop').classList.remove('open');
+  // also close any open dropdowns inside
+  document.querySelectorAll('.toolbar-dropdown').forEach(d => d.classList.remove('open'));
+};
+
+// ── In-panel color toggle ────────────────────────────────────
+window.toggleCtrlColors = function() {
+  const body = document.getElementById('ctrl-color-body');
+  const arrow = document.getElementById('ctrl-color-arrow');
+  const open = body.classList.toggle('open');
+  if (arrow) arrow.textContent = open ? '▴' : '▾';
+};
+
+// ============================================================
+//  SCENE SAVE / LOAD SYSTEM
+// ============================================================
+(function() {
+  const STORAGE_KEY = 'radar_scenes_v1';
+
+  function getScenes() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+    catch(e) { return []; }
+  }
+  function setScenes(arr) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); } catch(e) {}
+  }
+
+  // Collect state of currently active layers
+  function captureLayerState() {
+    return {
+      spc: window.spcActive || null,
+      eccc: document.getElementById('tb-eccc')?.classList.contains('active') || false,
+      lightning: document.getElementById('tb-lightning')?.classList.contains('active') || false,
+      stormReports: document.getElementById('tb-storm-reports')?.classList.contains('active') || false,
+      tropical: document.getElementById('tb-tropical')?.classList.contains('active') || false,
+      md: document.getElementById('tb-md')?.classList.contains('active') || false,
+      rainviewer: document.getElementById('l3-rainviewer')?.classList.contains('active') || true,
+    };
+  }
+
+  function renderScenes() {
+    const list = document.getElementById('scenes-list');
+    const empty = document.getElementById('scenes-empty');
+    const scenes = getScenes();
+    if (!list) return;
+
+    // Remove all scene-items
+    list.querySelectorAll('.scene-item').forEach(el => el.remove());
+
+    if (!scenes.length) {
+      if (empty) empty.style.display = 'block';
+      return;
+    }
+    if (empty) empty.style.display = 'none';
+
+    scenes.forEach((scene, idx) => {
+      const item = document.createElement('div');
+      item.className = 'scene-item';
+      const dt = new Date(scene.timestamp);
+      const timeStr = dt.toLocaleDateString('en-US', { month:'short', day:'numeric', hour:'numeric', minute:'2-digit' });
+      item.innerHTML = `
+        <div style="flex:1;min-width:0;">
+          <div class="scene-item-name">${scene.name || 'Scene ' + (idx + 1)}</div>
+          <div class="scene-item-time">${timeStr}</div>
+        </div>
+        <button class="scene-btn" onclick="loadScene(${idx})" title="Restore this scene">📍</button>
+        <button class="scene-btn del" onclick="deleteScene(${idx})" title="Delete">🗑</button>
+      `;
+      list.appendChild(item);
+    });
+  }
+
+  window.saveCurrentScene = function() {
+    const nameInput = document.getElementById('scene-name-input');
+    const name = (nameInput?.value || '').trim() || `Scene ${getScenes().length + 1}`;
+
+    if (!window.map) { alert('Map not loaded yet.'); return; }
+    const center = map.getCenter();
+    const scene = {
+      id: Date.now().toString(),
+      name,
+      timestamp: new Date().toISOString(),
+      view: {
+        center: [center.lng, center.lat],
+        zoom: map.getZoom(),
+        pitch: map.getPitch(),
+        bearing: map.getBearing(),
+      },
+      layers: captureLayerState(),
+    };
+
+    const scenes = getScenes();
+    scenes.push(scene);
+    setScenes(scenes);
+    if (nameInput) nameInput.value = '';
+    renderScenes();
+
+    // Brief visual feedback
+    const btn = document.getElementById('scene-save-btn');
+    if (btn) { const orig = btn.textContent; btn.textContent = '✓ SAVED'; setTimeout(() => btn.textContent = orig, 1500); }
+  };
+
+  window.loadScene = function(idx) {
+    const scenes = getScenes();
+    const scene = scenes[idx];
+    if (!scene || !window.map) return;
+
+    // Fly to saved view
+    map.flyTo({
+      center: scene.view.center,
+      zoom: scene.view.zoom,
+      pitch: scene.view.pitch || 0,
+      bearing: scene.view.bearing || 0,
+      duration: 1800,
+    });
+
+    // Restore layer states
+    const ls = scene.layers || {};
+
+    // SPC
+    if (ls.spc && ls.spc !== (window.spcActive || null)) {
+      const [day, type] = ls.spc.split('-');
+      if (day && type) setTimeout(() => window.loadSPCOutlook?.(day, type), 600);
+    } else if (!ls.spc && window.spcActive) {
+      window.clearSPCOutlook?.();
+    }
+
+    // Close panel after loading
+    closeControlPanel();
+  };
+
+  window.deleteScene = function(idx) {
+    const scenes = getScenes();
+    scenes.splice(idx, 1);
+    setScenes(scenes);
+    renderScenes();
+  };
+
+  // Init on DOM ready
+  renderScenes();
+
+})(); // end scene system
 
 </script>
