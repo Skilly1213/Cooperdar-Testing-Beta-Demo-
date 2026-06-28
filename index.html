@@ -4,6 +4,145 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Grey – MapTiler Cloud</title>
+
+  <!-- ============================================================
+       RESILIENCE LAYER — loaded first, wraps everything after it.
+       Goal: the app should never show a blank/crashed screen, and
+       data should be cached so re-opens & layer switches feel instant.
+  ============================================================ -->
+  <script>
+  (function () {
+    'use strict';
+
+    // ---- 1. Global safety net -------------------------------------------
+    // Catches any uncaught error/rejection anywhere in the 10k+ lines below
+    // so one bad layer/fetch/JSON.parse can't blank the whole page.
+    window.__appErrors = [];
+    function logAppError(kind, err) {
+      try {
+        const entry = { kind, message: (err && err.message) || String(err), time: Date.now() };
+        window.__appErrors.push(entry);
+        if (window.__appErrors.length > 200) window.__appErrors.shift();
+        console.error('[radar-app]', kind, err);
+      } catch (e) { /* never let logging itself throw */ }
+    }
+    window.addEventListener('error', (e) => logAppError('error', e.error || e.message));
+    window.addEventListener('unhandledrejection', (e) => logAppError('promise', e.reason));
+
+    // Wrap setInterval/setTimeout callbacks so a throwing timer (e.g. a
+    // radar-slider tick or a camera timer) can't kill the whole JS thread.
+    const _setInterval = window.setInterval;
+    const _setTimeout = window.setTimeout;
+    function wrapCb(fn) {
+      if (typeof fn !== 'function') return fn;
+      return function (...args) {
+        try { return fn.apply(this, args); }
+        catch (err) { logAppError('timer', err); }
+      };
+    }
+    window.setInterval = function (fn, ms, ...rest) { return _setInterval(wrapCb(fn), ms, ...rest); };
+    window.setTimeout = function (fn, ms, ...rest) { return _setTimeout(wrapCb(fn), ms, ...rest); };
+
+    // ---- 2. Background data cache + resilient fetch ----------------------
+    // Stale-while-revalidate cache for every GET fetch in the app:
+    //  - First load: fetch normally, cache result (memory + sessionStorage).
+    //  - Later calls to the same URL: return the cached copy INSTANTLY,
+    //    then silently refresh it in the background for next time.
+    //  - On network failure: fall back to the last good cached copy instead
+    //    of throwing, so a flaky connection doesn't crash a layer.
+    const CACHE_PREFIX = 'radarcache:';
+    const memCache = new Map(); // url -> { data, ts, etag }
+
+    function readDiskCache(url) {
+      try {
+        const raw = sessionStorage.getItem(CACHE_PREFIX + url);
+        return raw ? JSON.parse(raw) : null;
+      } catch (e) { return null; }
+    }
+    function writeDiskCache(url, entry) {
+      try { sessionStorage.setItem(CACHE_PREFIX + url, JSON.stringify(entry)); }
+      catch (e) { /* storage full/unavailable — fine, memory cache still works */ }
+    }
+
+    const nativeFetch = window.fetch.bind(window);
+
+    // Per-host max in-flight requests so a burst of layer loads (radar +
+    // alerts + tropical + cameras at once) can't choke the network.
+    const MAX_CONCURRENT = 6;
+    let inFlight = 0;
+    const queue = [];
+    function runQueued() {
+      while (inFlight < MAX_CONCURRENT && queue.length) {
+        const job = queue.shift();
+        job();
+      }
+    }
+
+    window.fetch = function (input, init) {
+      const url = typeof input === 'string' ? input : (input && input.url) || '';
+      const method = (init && init.method) || 'GET';
+      const cacheable = method === 'GET' && !(init && init.cache === 'no-store');
+
+      if (!cacheable) return nativeFetch(input, init);
+
+      const cached = memCache.get(url) || readDiskCache(url);
+      const fresh = cached && (Date.now() - cached.ts < 45000); // 45s freshness window
+
+      function doFetch() {
+        return new Promise((resolve, reject) => {
+          const job = () => {
+            inFlight++;
+            nativeFetch(input, init).then(res => {
+              inFlight--; runQueued();
+              if (!res.ok) { reject(new Error('HTTP ' + res.status)); return; }
+              res.clone().text().then(text => {
+                const entry = { data: text, ts: Date.now() };
+                memCache.set(url, entry);
+                writeDiskCache(url, entry);
+              }).catch(() => {});
+              resolve(res);
+            }).catch(err => { inFlight--; runQueued(); reject(err); });
+          };
+          queue.push(job); runQueued();
+        });
+      }
+
+      if (cached) {
+        // Serve instantly from cache...
+        const instant = Promise.resolve(new Response(cached.data, { status: 200 }));
+        // ...and refresh in the background if stale, without blocking caller.
+        if (!fresh) doFetch().catch(err => logAppError('bg-refresh:' + url, err));
+        return instant;
+      }
+
+      // No cache yet: fetch live, but never let a failure propagate as a
+      // hard crash — retry once with backoff before giving up.
+      return doFetch().catch(() =>
+        new Promise(r => _setTimeout(r, 800)).then(doFetch)
+      ).catch(err => {
+        logAppError('fetch:' + url, err);
+        // Return an empty-but-valid Response so calling code's .json()/.text()
+        // doesn't throw — layers should degrade gracefully, not crash.
+        return new Response('{}', { status: 200 });
+      });
+    };
+
+    // ---- 3. Watchdog -------------------------------------------------------
+    // If the map ever stops responding (e.g. a style failed to load),
+    // detect it and soft-recover instead of leaving a frozen/blank map.
+    let lastHeartbeat = Date.now();
+    _setInterval(() => { lastHeartbeat = Date.now(); }, 2000);
+    _setInterval(() => {
+      if (Date.now() - lastHeartbeat > 15000 && window.map && typeof window.map.resize === 'function') {
+        try { window.map.resize(); logAppError('watchdog', 'map appeared stalled — resized to recover'); }
+        catch (e) {}
+      }
+    }, 5000);
+
+    window.__radarCacheStats = () => ({ memEntries: memCache.size, errors: window.__appErrors.slice(-20) });
+  })();
+  </script>
+
   <!-- MapTiler SDK CSS -->
   <link href="https://cdn.maptiler.com/maptiler-sdk-js/v3.8.0/maptiler-sdk.css" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css?family=Bebas+Neue:400,700&display=swap" rel="stylesheet">
@@ -2631,8 +2770,44 @@
       maxPitch: 85,
       language: maptilersdk.Language.STYLE_LOCK,
       center: [-98.5795, 39.8283], // Centered on USA
-      zoom: 4
+      zoom: 4,
+      projection: 'globe' // 3D globe like the SW Louisiana Weather reference shot
     });
+
+    // Space backdrop + atmosphere glow, matching the globe look in the reference screenshot
+    map.on('style.load', () => {
+      try {
+        map.setSky({
+          'sky-color': '#000000',
+          'sky-horizon-blend': 0.5,
+          'horizon-color': '#1a2c4a',
+          'horizon-fog-blend': 0.6,
+          'fog-color': '#0a0f1a',
+          'fog-ground-blend': 0.3
+        });
+      } catch (e) { /* setSky not supported on this SDK build — non-fatal */ }
+    });
+
+    // Globe / flat-map toggle button (top-left, near other map controls)
+    (function addGlobeToggle() {
+      const btn = document.createElement('button');
+      btn.id = 'globe-toggle-btn';
+      btn.title = 'Toggle globe / flat map';
+      btn.textContent = '🌐';
+      btn.style.cssText = `
+        position:fixed; top:104px; left:10px; z-index:1500;
+        width:34px; height:34px; border-radius:6px;
+        background:rgba(0,80,160,0.7); color:#fff; border:1px solid rgba(255,255,255,0.25);
+        font-size:16px; cursor:pointer;
+      `;
+      let isGlobe = true;
+      btn.onclick = () => {
+        isGlobe = !isGlobe;
+        try { map.setProjection(isGlobe ? 'globe' : 'mercator'); } catch (e) {}
+        btn.style.background = isGlobe ? 'rgba(0,80,160,0.7)' : 'rgba(0,0,0,0.6)';
+      };
+      document.body.appendChild(btn);
+    })();
 
     // --- Patch: Replace maplibregl usage with maptilersdk where needed ---
     // For all maplibregl usages (e.g., new maplibregl.Popup, map.on, map.getLayer, etc.),
@@ -9312,8 +9487,141 @@ window.flyToAlertWithFlash = function(feature) {
 
 })();
 // ============================================================
-//  COOPER WATCH SYSTEM
+//  COOPER WATCH RELAY CLIENT
+//  Talks to cooper_relay_server.py over WebSocket so issuing a
+//  watch here shows up on the other site (and vice versa).
+//  Resilient by design: auto-reconnects with backoff, never
+//  throws into the rest of the app, and degrades to "local only"
+//  silently if no relay server is configured/reachable.
 // ============================================================
+window.CooperRelay = (function() {
+  const STORAGE_KEY = 'cooper_relay_url';
+  const SOURCE_ID = 'radarapp'; // identifies messages as coming from THIS site
+  let ws = null;
+  let url = null;
+  let reconnectDelay = 1000;
+  const MAX_RECONNECT_DELAY = 15000;
+  const listeners = [];
+  let connected = false;
+
+  function getSavedUrl() {
+    try { return localStorage.getItem(STORAGE_KEY) || ''; } catch (e) { return ''; }
+  }
+  function saveUrl(u) {
+    try { localStorage.setItem(STORAGE_KEY, u); } catch (e) {}
+  }
+
+  function setStatusDot(state) {
+    // state: 'off' | 'connecting' | 'on'
+    const dot = document.getElementById('cooper-relay-dot');
+    if (!dot) return;
+    dot.style.background = state === 'on' ? '#33cc66' : (state === 'connecting' ? '#ffaa00' : '#888');
+    dot.title = state === 'on' ? 'Cooper Relay: connected' :
+                state === 'connecting' ? 'Cooper Relay: connecting…' :
+                'Cooper Relay: not connected';
+  }
+
+  function connect(targetUrl) {
+    url = targetUrl || url || getSavedUrl();
+    if (!url) return; // nothing configured — stay local-only, no errors
+    try { if (ws) ws.close(); } catch (e) {}
+    setStatusDot('connecting');
+    try {
+      ws = new WebSocket(url);
+    } catch (e) {
+      console.error('[cooper-relay] could not open socket', e);
+      setStatusDot('off');
+      scheduleReconnect();
+      return;
+    }
+
+    ws.onopen = () => {
+      connected = true;
+      reconnectDelay = 1000;
+      setStatusDot('on');
+      saveUrl(url);
+      console.log('[cooper-relay] connected to', url);
+    };
+
+    ws.onmessage = (ev) => {
+      try {
+        const msg = JSON.parse(ev.data);
+        listeners.forEach(fn => {
+          try { fn(msg); } catch (e) { console.error('[cooper-relay] listener error', e); }
+        });
+      } catch (e) {
+        console.error('[cooper-relay] bad message from server', e);
+      }
+    };
+
+    ws.onclose = () => {
+      connected = false;
+      setStatusDot('off');
+      scheduleReconnect();
+    };
+
+    ws.onerror = (e) => {
+      // onclose will fire right after — just log here, never throw upward.
+      console.warn('[cooper-relay] socket error', e);
+    };
+  }
+
+  function scheduleReconnect() {
+    if (!url) return;
+    setTimeout(() => connect(url), reconnectDelay);
+    reconnectDelay = Math.min(reconnectDelay * 1.7, MAX_RECONNECT_DELAY);
+  }
+
+  function send(messageWithoutSource) {
+    if (!connected || !ws || ws.readyState !== WebSocket.OPEN) return false;
+    try {
+      ws.send(JSON.stringify(Object.assign({ source: SOURCE_ID }, messageWithoutSource)));
+      return true;
+    } catch (e) {
+      console.error('[cooper-relay] send failed', e);
+      return false;
+    }
+  }
+
+  function onMessage(fn) { listeners.push(fn); }
+
+  // Auto-connect on load if a URL was saved from a previous session.
+  const saved = getSavedUrl();
+  if (saved) setTimeout(() => connect(saved), 500);
+
+  return { connect, send, onMessage, isConnected: () => connected, SOURCE_ID };
+})();
+
+// Tiny status dot + "configure relay" UI, sits next to the Cooper Watch button.
+(function addCooperRelayUI() {
+  function build() {
+    const cooperBtn = document.getElementById('tb-cooper');
+    if (!cooperBtn || !cooperBtn.parentElement) { setTimeout(build, 1000); return; }
+
+    const dot = document.createElement('span');
+    dot.id = 'cooper-relay-dot';
+    dot.style.cssText = 'display:inline-block;width:8px;height:8px;border-radius:50%;background:#888;margin-left:6px;vertical-align:middle;cursor:pointer;';
+    dot.title = 'Cooper Relay: not connected';
+    dot.onclick = (e) => {
+      e.stopPropagation();
+      const current = (function () { try { return localStorage.getItem('cooper_relay_url') || ''; } catch (e) { return ''; } })();
+      const input = prompt(
+        'Cooper Watch Relay server URL (ws:// or wss://)\n' +
+        'This connects your watches to the other site in real time.\n' +
+        'Example: ws://your-server-address:8765',
+        current
+      );
+      if (input === null) return;
+      if (input.trim() === '') return;
+      window.CooperRelay.connect(input.trim());
+    };
+    cooperBtn.parentElement.style.position = cooperBtn.parentElement.style.position || 'relative';
+    cooperBtn.appendChild(dot);
+  }
+  build();
+})();
+
+
 (function() {
   const cooperWatches = {};          // id → { meta, sourceId, layerFillId, layerLineId, layerDotsId, timerInterval }
   let drawPoints     = [];           // [lng,lat] click points during draw
@@ -9420,9 +9728,13 @@ window.flyToAlertWithFlash = function(feature) {
   });
 
   // ── Clear all ──────────────────────────────────────────────
-  window.clearAllCooperWatches = function() {
-    Object.keys(cooperWatches).forEach(deleteCooperWatch);
+  window.clearAllCooperWatches = function(fromRemote) {
+    Object.keys(cooperWatches).forEach(id => deleteCooperWatch(id, true)); // true = don't send N individual deletes
     updateDropdownList();
+    if (!fromRemote) {
+      try { window.CooperRelay && window.CooperRelay.send({ type: 'clear_all' }); }
+      catch (e) { console.error('[cooper-relay] broadcast clear_all failed', e); }
+    }
   };
 
   // ── Helpers ────────────────────────────────────────────────
@@ -9560,6 +9872,15 @@ window.flyToAlertWithFlash = function(feature) {
     updateDropdownList();
     showCooperInfoCard(id);
     tbBtn.classList.remove('active');
+
+    // Tell the relay (if connected) so the other site sees this watch too.
+    // Never lets a relay/network issue affect the local watch we just made.
+    try {
+      window.CooperRelay && window.CooperRelay.send({
+        type: 'issue',
+        watch: Object.assign({}, meta, { coords })
+      });
+    } catch (e) { console.error('[cooper-relay] broadcast issue failed', e); }
   }
 
   // ── Info card display ──────────────────────────────────────
@@ -9607,7 +9928,7 @@ window.flyToAlertWithFlash = function(feature) {
   }
 
   // ── Expire / delete ────────────────────────────────────────
-  function expireCooperWatch(id) {
+  function expireCooperWatch(id, fromRemote) {
     const w = cooperWatches[id];
     if (!w) return;
     clearInterval(w.timerInterval);
@@ -9616,11 +9937,15 @@ window.flyToAlertWithFlash = function(feature) {
     try { map.setPaintProperty(`${id}-line`, 'line-color', '#666666'); } catch(e){}
     try { map.setPaintProperty(`${id}-dots`, 'circle-color', '#666666'); } catch(e){}
     // Remove after 2 min grace
-    setTimeout(() => deleteCooperWatch(id), 120000);
+    setTimeout(() => deleteCooperWatch(id, fromRemote), 120000);
     updateDropdownList();
+    if (!fromRemote) {
+      try { window.CooperRelay && window.CooperRelay.send({ type: 'expire', id }); }
+      catch (e) { console.error('[cooper-relay] broadcast expire failed', e); }
+    }
   }
 
-  function deleteCooperWatch(id) {
+  function deleteCooperWatch(id, fromRemote) {
     const w = cooperWatches[id];
     if (!w) return;
     clearInterval(w.timerInterval);
@@ -9631,6 +9956,10 @@ window.flyToAlertWithFlash = function(feature) {
     delete cooperWatches[id];
     if (activeCooperId === id) { infoCard.style.display = 'none'; activeCooperId = null; }
     updateDropdownList();
+    if (!fromRemote) {
+      try { window.CooperRelay && window.CooperRelay.send({ type: 'delete', id }); }
+      catch (e) { console.error('[cooper-relay] broadcast delete failed', e); }
+    }
   }
 
   // ── Dropdown list ──────────────────────────────────────────
@@ -9663,6 +9992,73 @@ window.flyToAlertWithFlash = function(feature) {
   // ── Modal click-outside close ──────────────────────────────
   modal.addEventListener('click', function(e) {
     if (e.target === modal) cancelModal();
+  });
+
+  // ── Remote watches (issued on the other site, shown here) ───
+  function renderRemoteWatch(watch) {
+    try {
+      if (!watch || !watch.id || !Array.isArray(watch.coords) || watch.coords.length < 3) return;
+      if (cooperWatches[watch.id]) return; // already have it (e.g. dup sync)
+      if (!window.map) return;
+
+      const id = watch.id;
+      const color = watch.color || '#3399ff'; // distinct default tint for remote watches
+      const ring = [...watch.coords, watch.coords[0]];
+      const geojson = {
+        type: 'FeatureCollection',
+        features: [{ type: 'Feature', geometry: { type: 'Polygon', coordinates: [ring] }, properties: { id, color } }]
+      };
+
+      map.addSource(id, { type: 'geojson', data: geojson });
+      const sym = (map.getStyle().layers || []).find(l => l.type === 'symbol');
+      map.addLayer({ id: `${id}-fill`, type: 'fill', source: id, paint: { 'fill-color': color, 'fill-opacity': 0.2 } }, sym ? sym.id : undefined);
+      map.addLayer({ id: `${id}-line`, type: 'line', source: id, paint: { 'line-color': color, 'line-width': 3, 'line-dasharray': [1, 1] } }, sym ? sym.id : undefined); // dotted = remote, visually distinct from local dashed
+      map.addLayer({ id: `${id}-dots`, type: 'circle', source: id, paint: { 'circle-radius': 5, 'circle-color': color, 'circle-stroke-width': 2, 'circle-stroke-color': '#fff' } });
+
+      map.on('click', `${id}-fill`, () => showCooperInfoCard(id));
+      map.on('mouseenter', `${id}-fill`, () => map.getCanvas().style.cursor = 'pointer');
+      map.on('mouseleave', `${id}-fill`, () => map.getCanvas().style.cursor = '');
+
+      const timerInterval = setInterval(() => {
+        if (watch.expiresAt && Date.now() >= new Date(watch.expiresAt).getTime()) {
+          expireCooperWatch(id, true);
+        } else if (activeCooperId === id) {
+          refreshCooperInfoCard(id);
+        }
+      }, 10000);
+
+      cooperWatches[id] = { meta: Object.assign({}, watch, { remote: true }), timerInterval };
+      updateDropdownList();
+    } catch (e) {
+      console.error('[cooper-relay] failed to render remote watch (skipped, app continues)', e);
+    }
+  }
+
+  // Wire up incoming relay traffic. Every branch is independent and wrapped
+  // so a malformed/unexpected message from the other site can't crash this side.
+  window.CooperRelay.onMessage(function(msg) {
+    try {
+      if (!msg || msg.source === window.CooperRelay.SOURCE_ID) return; // ignore our own echoes
+      switch (msg.type) {
+        case 'sync_response':
+          (msg.watches || []).forEach(renderRemoteWatch);
+          break;
+        case 'issue':
+          renderRemoteWatch(msg.watch);
+          break;
+        case 'expire':
+          if (msg.id) expireCooperWatch(msg.id, true);
+          break;
+        case 'delete':
+          if (msg.id) deleteCooperWatch(msg.id, true);
+          break;
+        case 'clear_all':
+          window.clearAllCooperWatches(true);
+          break;
+      }
+    } catch (e) {
+      console.error('[cooper-relay] error handling incoming message (continuing)', e);
+    }
   });
 
 })(); // end Cooper Watch IIFE
@@ -10431,28 +10827,49 @@ window.toggleCtrlColors = function() {
     const scene = scenes[idx];
     if (!scene || !window.map) return;
 
-    // Fly to saved view
-    map.flyTo({
-      center: scene.view.center,
-      zoom: scene.view.zoom,
-      pitch: scene.view.pitch || 0,
-      bearing: scene.view.bearing || 0,
-      duration: 1800,
-    });
+    try {
+      // Fly to saved view
+      map.flyTo({
+        center: scene.view.center,
+        zoom: scene.view.zoom,
+        pitch: scene.view.pitch || 0,
+        bearing: scene.view.bearing || 0,
+        duration: 1800,
+      });
+    } catch (e) { console.error('[scenes] flyTo failed', e); }
 
-    // Restore layer states
+    // Restore layer states. Each toggle is independent and wrapped so one
+    // missing/renamed function can't stop the rest of the scene from loading.
     const ls = scene.layers || {};
 
-    // SPC
-    if (ls.spc && ls.spc !== (window.spcActive || null)) {
-      const [day, type] = ls.spc.split('-');
-      if (day && type) setTimeout(() => window.loadSPCOutlook?.(day, type), 600);
-    } else if (!ls.spc && window.spcActive) {
-      window.clearSPCOutlook?.();
+    function safeToggle(label, currentlyOn, wantOn, toggleFn) {
+      try {
+        if (typeof toggleFn !== 'function') return;
+        if (!!currentlyOn !== !!wantOn) toggleFn();
+      } catch (e) { console.error('[scenes] toggle failed:', label, e); }
     }
 
+    // SPC outlook (special case: takes day/type args, not a plain toggle)
+    try {
+      if (ls.spc && ls.spc !== (window.spcActive || null)) {
+        const [day, type] = ls.spc.split('-');
+        if (day && type) setTimeout(() => window.loadSPCOutlook?.(day, type), 600);
+      } else if (!ls.spc && window.spcActive) {
+        window.clearSPCOutlook?.();
+      }
+    } catch (e) { console.error('[scenes] SPC restore failed', e); }
+
+    setTimeout(() => {
+      safeToggle('eccc', document.getElementById('tb-eccc')?.classList.contains('active'), ls.eccc, window.toggleECCC);
+      safeToggle('md', document.getElementById('tb-md')?.classList.contains('active'), ls.md, window.toggleMDs);
+      safeToggle('stormReports', document.getElementById('tb-storm-reports')?.classList.contains('active'), ls.stormReports, window.toggleStormReports);
+      safeToggle('tropical', document.getElementById('tb-tropical')?.classList.contains('active'), ls.tropical, window.toggleTropical);
+      safeToggle('lightning', document.getElementById('tb-lightning')?.classList.contains('active'), ls.lightning, window.toggleLightning);
+      safeToggle('rainviewer', document.getElementById('l3-rainviewer')?.classList.contains('active'), ls.rainviewer, window.toggleRainviewer);
+    }, 700); // slight delay so it runs after the SPC restore kicks off, not racing it
+
     // Close panel after loading
-    closeControlPanel();
+    try { closeControlPanel(); } catch (e) {}
   };
 
   window.deleteScene = function(idx) {
