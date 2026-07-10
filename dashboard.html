@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YallCam Dashboard</title>
+    <script type="module" crossorigin src="./dashboard-CW4cVXpb.js"></script>
+    <link rel="modulepreload" crossorigin href="./firebase-config-F0v7j6pp.js">
+    <link rel="stylesheet" crossorigin href="./dashboard-Xw8Llu3T.css">
+</head>
+
+<body>
+    <header class="header">
+        <div class="logo">YallCam Dashboard</div>
+        <div class="nav-buttons">
+            <button id="auth-btn" class="btn">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
+                </svg>
+                Sign Out
+            </button>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="action-buttons">
+            <div class="action-card" onclick="window.location.href='index.html'">
+                <div class="action-icon">🗺️</div>
+                <div class="action-title">Map</div>
+                <div class="action-description">View live cameras on interactive map</div>
+            </div>
+            <div class="action-card" onclick="window.location.href='manage-cameras.html'">
+                <div class="action-icon">⚙️</div>
+                <div class="action-title">Manage</div>
+                <div class="action-description">Add and manage custom cameras</div>
+            </div>
+            <div class="action-card" onclick="window.location.href='camera-submissions.html'">
+                <div class="action-icon">📋</div>
+                <div class="action-title">Submissions</div>
+                <div class="action-description">Review public camera submissions</div>
+            </div>
+            <div class="action-card disabled">
+                <div class="action-icon">🎬</div>
+                <div class="action-title">Clip</div>
+                <div class="action-description">Coming Soon</div>
+            </div>
+        </div>
+
+        <div class="stats-container">
+            <div class="stats-header">
+                <span>Camera Statistics</span>
+                <span class="last-updated" id="last-updated">Loading...</span>
+            </div>
+
+            <div id="stats-content">
+                <div class="loading loading-pulse">Loading statistics...</div>
+            </div>
+        </div>
+    </main>
+
+</body>
+
+</html>
